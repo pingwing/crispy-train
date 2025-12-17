@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: knostic_shop
+      POSTGRES_USER: knostic
+      POSTGRES_PASSWORD: knostic
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U knostic -d knostic_shop"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  server:
+    build:
+      context: ./server
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: knostic_shop
+      DB_USER: knostic
+      DB_PASSWORD: knostic
+    ports:
+      - "4001:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+
+volumes:
+  db_data:
+
+
