@@ -1,32 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useMutation, useQuery } from 'urql';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
-import { STORE_DETAIL_QUERY, UPSERT_INVENTORY_ITEM_MUTATION } from '../graphql/queries';
-
-type InventoryItem = {
-  id: string;
-  price: string;
-  quantity: number;
-  inventoryValue: string;
-  product: { id: string; name: string; category: string };
-};
+import { useStoreDetailQuery, useUpsertInventoryItemMutation } from '../graphql/generated/urql';
 
 export function StoreDetailPage() {
   const params = useParams();
   const storeId = params.storeId ?? '';
 
-  const [{ data, fetching, error }, reexecute] = useQuery({
-    query: STORE_DETAIL_QUERY,
+  const [{ data, fetching, error }, reexecute] = useStoreDetailQuery({
     variables: { id: storeId },
     pause: !storeId,
   });
 
-  const [, upsertInventoryItem] = useMutation(UPSERT_INVENTORY_ITEM_MUTATION);
+  const [{ fetching: savingMutation }, upsertInventoryItem] = useUpsertInventoryItemMutation();
 
   const store = data?.store;
   const summary = data?.storeInventorySummary;
-  const items: InventoryItem[] = store?.inventoryItems ?? [];
+  const items = store?.inventoryItems ?? [];
 
   const [editingId, setEditingId] = useState<string>('');
   const [editPrice, setEditPrice] = useState<string>('');
@@ -43,7 +33,7 @@ export function StoreDetailPage() {
 
   if (!store) return <EmptyState title="Store not found" details={<Link to="/">Back to inventory</Link>} />;
 
-  async function startEdit(item: InventoryItem) {
+  async function startEdit(item: (typeof items)[number]) {
     setFormError('');
     setEditingId(item.id);
     setEditPrice(item.price);
@@ -53,6 +43,7 @@ export function StoreDetailPage() {
   async function save() {
     setFormError('');
     if (!current) return;
+    if (!store) return;
 
     const price = editPrice.trim();
     const qty = Number(editQty);
@@ -151,11 +142,11 @@ export function StoreDetailPage() {
                     <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2', textAlign: 'right' }}>
                       {isEditing ? (
                         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
-                          <button disabled={saving} onClick={save}>
-                            {saving ? 'Saving…' : 'Save'}
+                          <button disabled={saving || savingMutation} onClick={save}>
+                            {saving || savingMutation ? 'Saving…' : 'Save'}
                           </button>
                           <button
-                            disabled={saving}
+                            disabled={saving || savingMutation}
                             onClick={() => {
                               setEditingId('');
                               setFormError('');

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "codegen": "graphql-codegen --config codegen.ts",
     "dev": "nodemon --watch src --ext ts,graphql --exec ts-node src/index.ts",
     "build": "tsc -p tsconfig.json && node scripts/copy-schema.mjs",
     "start": "node dist/index.js",
@@ -34,6 +35,9 @@
     "zod": "^4.2.1"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^6.1.0",
+    "@graphql-codegen/typescript": "^5.0.6",
+    "@graphql-codegen/typescript-resolvers": "^5.1.4",
     "@mikro-orm/cli": "^6.6.2",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

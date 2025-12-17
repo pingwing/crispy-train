@@ -1,4 +1,4 @@
-import type { Resolvers } from '../types';
+import type { Resolvers } from '../generated/resolvers-types';
 import { z } from 'zod';
 import { GraphQLError } from 'graphql';
 import { InventoryItem, Product, Store } from '../../db/entities';
@@ -27,25 +27,13 @@ export const resolvers: Resolvers = {
       return ctx.em.find(Store, {}, { orderBy: { name: 'asc' } });
     },
 
-    store: async (_p, args: { id: string }, ctx) => {
+    store: async (_p, args, ctx) => {
       return ctx.em.findOne(Store, { id: args.id });
     },
 
     inventoryItems: async (
       _p,
-      args: {
-        filter?: {
-          storeId?: string;
-          category?: string;
-          search?: string;
-          minPrice?: string;
-          maxPrice?: string;
-          minQuantity?: number;
-          maxQuantity?: number;
-        };
-        page?: number;
-        pageSize?: number;
-      },
+      args,
       ctx,
     ) => {
       const page = Math.max(1, args.page ?? 1);
@@ -79,7 +67,7 @@ export const resolvers: Resolvers = {
       };
     },
 
-    storeInventorySummary: async (_p, args: { storeId: string }, ctx) => {
+    storeInventorySummary: async (_p, args, ctx) => {
       const store = await ctx.em.findOne(Store, { id: args.storeId });
       if (!store) throw notFound('Store not found');
 
@@ -106,7 +94,7 @@ export const resolvers: Resolvers = {
   },
 
   Mutation: {
-    createStore: async (_p, args: { input: { name: string; location?: string | null } }, ctx) => {
+    createStore: async (_p, args, ctx) => {
       const input = z
         .object({
           name: z.string().trim().min(1).max(120),
@@ -122,7 +110,7 @@ export const resolvers: Resolvers = {
       return store;
     },
 
-    updateStore: async (_p, args: { id: string; input: { name?: string; location?: string | null } }, ctx) => {
+    updateStore: async (_p, args, ctx) => {
       const input = z
         .object({
           name: z.string().trim().min(1).max(120).optional(),
@@ -144,7 +132,7 @@ export const resolvers: Resolvers = {
       return store;
     },
 
-    createProduct: async (_p, args: { input: { name: string; category: string } }, ctx) => {
+    createProduct: async (_p, args, ctx) => {
       const input = z
         .object({
           name: z.string().trim().min(1).max(120),
@@ -157,7 +145,7 @@ export const resolvers: Resolvers = {
       return product;
     },
 
-    updateProduct: async (_p, args: { id: string; input: { name?: string; category?: string } }, ctx) => {
+    updateProduct: async (_p, args, ctx) => {
       const input = z
         .object({
           name: z.string().trim().min(1).max(120).optional(),
@@ -175,11 +163,7 @@ export const resolvers: Resolvers = {
       return product;
     },
 
-    upsertInventoryItem: async (
-      _p,
-      args: { input: { storeId: string; productId: string; price: string; quantity: number } },
-      ctx,
-    ) => {
+    upsertInventoryItem: async (_p, args, ctx) => {
       const input = z
         .object({
           storeId: z.string().uuid(),
@@ -213,7 +197,7 @@ export const resolvers: Resolvers = {
 
   Store: {
     inventoryItems: async (store: Store, _args, ctx) => {
-      return ctx.em.find(InventoryItem, { store: store.id }, { populate: ['product', 'store'] });
+      return ctx.em.find(InventoryItem, { store: store.id }, { populate: ['product', 'store'] as const });
     },
   },
 

@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
-import { useQuery } from 'urql';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
-import { INVENTORY_ITEMS_QUERY, STORES_QUERY } from '../graphql/queries';
-
-type Store = { id: string; name: string; location?: string | null };
+import { useInventoryItemsQuery, useStoresQuery } from '../graphql/generated/urql';
 
 export function InventoryListPage() {
   const [page, setPage] = useState(1);
@@ -18,9 +15,7 @@ export function InventoryListPage() {
   const [minQuantity, setMinQuantity] = useState<string>('');
   const [maxQuantity, setMaxQuantity] = useState<string>('');
 
-  const [{ data: storesData, fetching: storesFetching, error: storesError }] = useQuery<{ stores: Store[] }>({
-    query: STORES_QUERY,
-  });
+  const [{ data: storesData, fetching: storesFetching, error: storesError }] = useStoresQuery();
 
   const filter = useMemo(() => {
     const f: Record<string, unknown> = {};
@@ -34,9 +29,8 @@ export function InventoryListPage() {
     return f;
   }, [storeId, category, search, minPrice, maxPrice, minQuantity, maxQuantity]);
 
-  const [{ data, fetching, error }] = useQuery({
-    query: INVENTORY_ITEMS_QUERY,
-    variables: { filter, page, pageSize },
+  const [{ data, fetching, error }] = useInventoryItemsQuery({
+    variables: { filter: filter as any, page, pageSize },
   });
 
   const items = data?.inventoryItems?.items ?? [];
@@ -209,7 +203,7 @@ export function InventoryListPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((it: any) => (
+              {items.map((it) => (
                 <tr key={it.id}>
                   <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}>
                     <Link to={`/stores/${it.store.id}`}>{it.store.name}</Link>

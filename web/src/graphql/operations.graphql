@@ -1,0 +1,77 @@
+query Stores {
+  stores {
+    id
+    name
+    location
+  }
+}
+
+query InventoryItems($filter: InventoryItemFilterInput, $page: Int, $pageSize: Int) {
+  inventoryItems(filter: $filter, page: $page, pageSize: $pageSize) {
+    pageInfo {
+      page
+      pageSize
+      total
+    }
+    items {
+      id
+      price
+      quantity
+      inventoryValue
+      store {
+        id
+        name
+      }
+      product {
+        id
+        name
+        category
+      }
+    }
+  }
+}
+
+query StoreDetail($id: ID!) {
+  store(id: $id) {
+    id
+    name
+    location
+    inventoryItems {
+      id
+      price
+      quantity
+      inventoryValue
+      product {
+        id
+        name
+        category
+      }
+    }
+  }
+  storeInventorySummary(storeId: $id) {
+    totalSkus
+    totalQuantity
+    totalValue
+    lowStockCount
+  }
+}
+
+mutation UpsertInventoryItem($input: InventoryItemUpsertInput!) {
+  upsertInventoryItem(input: $input) {
+    id
+    price
+    quantity
+    inventoryValue
+    product {
+      id
+      name
+      category
+    }
+    store {
+      id
+      name
+    }
+  }
+}
+
+
