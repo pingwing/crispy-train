@@ -4,7 +4,8 @@ import { RequestContext } from '@mikro-orm/core';
 
 export function mikroOrmRequestContext(orm: MikroORM) {
   return (_req: Request, _res: Response, next: NextFunction) => {
-    RequestContext.create(orm.em, next);
+    // Create a per-request EM fork (identity map) and bind it to AsyncLocalStorage.
+    RequestContext.create(orm.em.fork(), next);
   };
 }
 

@@ -2,6 +2,104 @@ scalar DateTime
 
 type Query {
   _health: String!
+  stores: [Store!]!
+  store(id: ID!): Store
+  inventoryItems(filter: InventoryItemFilterInput, page: Int = 1, pageSize: Int = 20): InventoryItemPage!
+  storeInventorySummary(storeId: ID!): StoreInventorySummary!
+}
+
+type Mutation {
+  createStore(input: StoreCreateInput!): Store!
+  updateStore(id: ID!, input: StoreUpdateInput!): Store!
+
+  createProduct(input: ProductCreateInput!): Product!
+  updateProduct(id: ID!, input: ProductUpdateInput!): Product!
+
+  upsertInventoryItem(input: InventoryItemUpsertInput!): InventoryItem!
+}
+
+type Store {
+  id: ID!
+  name: String!
+  location: String
+  inventoryItems: [InventoryItem!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Product {
+  id: ID!
+  name: String!
+  category: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type InventoryItem {
+  id: ID!
+  store: Store!
+  product: Product!
+  price: String!
+  quantity: Int!
+  inventoryValue: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+input StoreCreateInput {
+  name: String!
+  location: String
+}
+
+input StoreUpdateInput {
+  name: String
+  location: String
+}
+
+input ProductCreateInput {
+  name: String!
+  category: String!
+}
+
+input ProductUpdateInput {
+  name: String
+  category: String
+}
+
+input InventoryItemUpsertInput {
+  storeId: ID!
+  productId: ID!
+  price: String!
+  quantity: Int!
+}
+
+input InventoryItemFilterInput {
+  storeId: ID
+  category: String
+  search: String
+  minPrice: String
+  maxPrice: String
+  minQuantity: Int
+  maxQuantity: Int
+}
+
+type PageInfo {
+  page: Int!
+  pageSize: Int!
+  total: Int!
+}
+
+type InventoryItemPage {
+  items: [InventoryItem!]!
+  pageInfo: PageInfo!
+}
+
+type StoreInventorySummary {
+  store: Store!
+  totalSkus: Int!
+  totalQuantity: Int!
+  totalValue: String!
+  lowStockCount: Int!
 }
 
 
