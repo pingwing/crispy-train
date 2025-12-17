@@ -1,0 +1,7 @@
+scalar DateTime
+
+type Query {
+  _health: String!
+}
+
+
