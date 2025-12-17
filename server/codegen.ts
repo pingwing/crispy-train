@@ -9,10 +9,10 @@ const config: CodegenConfig = {
         useTypeImports: true,
         contextType: '../types#GraphQLContext',
         mappers: {
-          // Note: this file is generated into `src/graphql/generated/`, so entities are 2 levels up.
-          Store: '../../db/entities#Store',
-          Product: '../../db/entities#Product',
-          InventoryItem: '../../db/entities#InventoryItem',
+          // Map GraphQL types to domain classes (avoid collisions with schema type names).
+          Store: '../../domain#StoreDomain',
+          Product: '../../domain#ProductDomain',
+          InventoryItem: '../../domain#InventoryItemDomain',
         },
       },
     },

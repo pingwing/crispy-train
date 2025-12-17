@@ -14,6 +14,11 @@ import { mikroOrmRequestContext } from './db/requestContext';
 import { loadSchemaSDL } from './graphql/loadSchema';
 import { resolvers } from './graphql/resolvers';
 import type { GraphQLContext } from './graphql/types';
+import { createServices } from './services/createServices';
+import { InventoryRepository } from './repositories/InventoryRepository';
+import { ProductRepository } from './repositories/ProductRepository';
+import { StoreRepository } from './repositories/StoreRepository';
+import { InventoryService } from './services/InventoryService';
 
 async function main() {
   const orm = await initOrm();
@@ -41,7 +46,18 @@ async function main() {
     expressMiddleware<GraphQLContext>(apollo, {
       context: async ({ req }: { req: express.Request }) => {
         const em = (RequestContext.getEntityManager() ?? orm.em.fork()) as SqlEntityManager;
-        return { orm, em, req };
+        return {
+          orm,
+          em,
+          req,
+          services: createServices({
+            em,
+            StoreRepository,
+            ProductRepository,
+            InventoryRepository,
+            InventoryService,
+          }),
+        };
       },
     }),
   );
