@@ -11,5 +11,3 @@ export class Store {
     public readonly updatedAt: Date,
   ) {}
 }
-
-

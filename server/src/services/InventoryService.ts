@@ -1,14 +1,14 @@
 import { z } from 'zod';
-import { InventoryRepository, type InventoryItemFilter } from '../repositories/InventoryRepository';
-import { StoreRepository } from '../repositories/StoreRepository';
-import { ProductRepository } from '../repositories/ProductRepository';
+import type { IInventoryRepository, InventoryItemFilter } from '../repositories/InventoryRepository';
+import type { IStoreRepository } from '../repositories/StoreRepository';
+import type { IProductRepository } from '../repositories/ProductRepository';
 import { NotFoundError, ValidationError } from '../domain';
 
 export class InventoryService {
   constructor(
-    private readonly stores: StoreRepository,
-    private readonly products: ProductRepository,
-    private readonly inventory: InventoryRepository,
+    private readonly stores: IStoreRepository,
+    private readonly products: IProductRepository,
+    private readonly inventory: IInventoryRepository,
   ) {}
 
   listStores() {
@@ -86,7 +86,7 @@ export class InventoryService {
         productId: z.string().uuid(),
         price: z
           .string()
-          .regex(/^[0-9]+(\\.[0-9]{1,2})?$/, 'price must be a decimal string')
+          .regex(/^[0-9]+(\.[0-9]{1,2})?$/, 'price must be a decimal string')
           .refine((v) => Number(v) >= 0, 'price must be >= 0'),
         quantity: z.number().int().min(0).max(1_000_000),
       })

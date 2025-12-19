@@ -1,9 +1,19 @@
 import type { SqlEntityManager } from '@mikro-orm/postgresql';
 import { InventoryItem as InventoryItemEntity, Store as StoreEntity } from '../db/entities';
-import { Store, ValidationError } from '../domain';
+import { InventoryItem, Store, ValidationError } from '../domain';
 import { toDomainInventoryItem, toDomainStore } from './mappers';
 
-export class StoreRepository {
+export interface IStoreRepository {
+  list(): Promise<Store[]>;
+  getById(id: string): Promise<Store | null>;
+  getEntityById(id: string): Promise<StoreEntity | null>;
+  getEntityByName(name: string): Promise<StoreEntity | null>;
+  create(input: { name: string; location?: string | null }): Promise<Store>;
+  update(id: string, input: { name?: string; location?: string | null }): Promise<Store | null>;
+  listInventoryItems(storeId: string): Promise<InventoryItem[]>;
+}
+
+export class StoreRepository implements IStoreRepository {
   constructor(private readonly em: SqlEntityManager) {}
 
   async list(): Promise<Store[]> {
@@ -29,7 +39,7 @@ export class StoreRepository {
     if (exists) throw new ValidationError('Store name must be unique', { field: 'name' });
 
     const store = this.em.create(StoreEntity, { name: input.name, location: input.location ?? undefined });
-    await this.em.persistAndFlush(store);
+    await this.em.persist(store).flush();
     return toDomainStore(store);
   }
 
@@ -44,11 +54,11 @@ export class StoreRepository {
     }
 
     if (input.location !== undefined) store.location = input.location ?? undefined;
-    await this.em.flush();
+    await this.em.persist(store).flush();
     return toDomainStore(store);
   }
 
-  async listInventoryItems(storeId: string) {
+  async listInventoryItems(storeId: string): Promise<InventoryItem[]> {
     const items = await this.em.find(
       InventoryItemEntity,
       { store: storeId },

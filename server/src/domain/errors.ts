@@ -15,4 +15,9 @@ export class ValidationError extends Error {
   }
 }
 
-
+export class NotANumberError extends ValidationError {
+  constructor(input: unknown) {
+    super('Value is not a number', { input });
+    this.name = 'NotANumberError';
+  }
+}

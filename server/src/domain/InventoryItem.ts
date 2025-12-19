@@ -18,5 +18,3 @@ export class InventoryItem {
     return asMoneyString(value);
   }
 }
-
-

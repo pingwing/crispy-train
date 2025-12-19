@@ -7,5 +7,3 @@ export class Product {
     public readonly updatedAt: Date,
   ) {}
 }
-
-

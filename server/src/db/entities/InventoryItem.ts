@@ -1,5 +1,5 @@
 import { Entity, ManyToOne, OptionalProps, PrimaryKey, Property, Unique } from '@mikro-orm/core';
-import { v4 as uuidv4 } from 'uuid';
+import { newId } from '../../utils/ids';
 import { Product } from './Product';
 import { Store } from './Store';
 
@@ -9,7 +9,7 @@ export class InventoryItem {
   [OptionalProps]?: 'id' | 'createdAt' | 'updatedAt';
 
   @PrimaryKey({ type: 'uuid' })
-  id: string = uuidv4();
+  id: string = newId();
 
   @ManyToOne(() => Store)
   store!: Store;

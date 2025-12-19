@@ -1,0 +1,11 @@
+dist
+node_modules
+coverage
+
+# lockfiles
+package-lock.json
+
+# generated code
+src/graphql/generated
+
+

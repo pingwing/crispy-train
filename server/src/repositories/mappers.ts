@@ -15,5 +15,3 @@ export function toDomainInventoryItem(ii: InventoryItemEntity): InventoryItem {
   const product = toDomainProduct(ii.product);
   return new InventoryItem(ii.id, store, product, ii.price, ii.quantity, ii.createdAt, ii.updatedAt);
 }
-
-

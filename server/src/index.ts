@@ -46,17 +46,19 @@ async function main() {
     expressMiddleware<GraphQLContext>(apollo, {
       context: async ({ req }: { req: express.Request }) => {
         const em = (RequestContext.getEntityManager() ?? orm.em.fork()) as SqlEntityManager;
+        const services = createServices({
+          em,
+          StoreRepository,
+          ProductRepository,
+          InventoryRepository,
+          InventoryService,
+        });
+
         return {
           orm,
           em,
           req,
-          services: createServices({
-            em,
-            StoreRepository,
-            ProductRepository,
-            InventoryRepository,
-            InventoryService,
-          }),
+          services
         };
       },
     }),

@@ -23,7 +23,13 @@ export type StoreInventorySummary = {
   lowStockCount: number;
 };
 
-export class InventoryRepository {
+export interface IInventoryRepository {
+  listInventoryItems(filter: InventoryItemFilter, page: number, pageSize: number): Promise<Paged<InventoryItem>>;
+  upsertInventoryItem(input: { storeId: string; productId: string; price: string; quantity: number }): Promise<InventoryItem | null>;
+  storeInventorySummary(storeId: string): Promise<StoreInventorySummary | null>;
+}
+
+export class InventoryRepository implements IInventoryRepository {
   constructor(private readonly em: SqlEntityManager) {}
 
   async listInventoryItems(filter: InventoryItemFilter, page: number, pageSize: number): Promise<Paged<InventoryItem>> {
@@ -59,7 +65,7 @@ export class InventoryRepository {
     };
   }
 
-  async upsertInventoryItem(input: { storeId: string; productId: string; price: string; quantity: number }) {
+  async upsertInventoryItem(input: { storeId: string; productId: string; price: string; quantity: number }): Promise<InventoryItem | null> {
     const store = await this.em.findOne(StoreEntity, { id: input.storeId });
     if (!store) return null;
     const product = await this.em.findOne(ProductEntity, { id: input.productId });
@@ -68,14 +74,14 @@ export class InventoryRepository {
     let item = await this.em.findOne(InventoryItemEntity, { store: store.id, product: product.id }, { populate: ['store', 'product'] as const });
     if (!item) {
       item = this.em.create(InventoryItemEntity, { store, product, price: input.price, quantity: input.quantity });
-      await this.em.persistAndFlush(item);
+      await this.em.persist(item).flush();
       await this.em.populate(item, ['store', 'product'] as const);
       return toDomainInventoryItem(item);
     }
 
     item.price = input.price;
     item.quantity = input.quantity;
-    await this.em.flush();
+    await this.em.persist(item).flush();
     return toDomainInventoryItem(item);
   }
 
@@ -104,5 +110,6 @@ export class InventoryRepository {
     };
   }
 }
+
 
 
