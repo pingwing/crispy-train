@@ -51,6 +51,7 @@ export interface IInventoryRepository {
     pageSize: number,
     sort?: InventoryItemSort,
   ): Promise<Paged<InventoryItem>>;
+  deleteInventoryItem(input: { storeId: string; productId: string }): Promise<boolean>;
   upsertInventoryItem(input: {
     storeId: string;
     productId: string;
@@ -62,6 +63,14 @@ export interface IInventoryRepository {
 
 export class InventoryRepository implements IInventoryRepository {
   constructor(private readonly em: SqlEntityManager) { }
+
+  async deleteInventoryItem(input: { storeId: string; productId: string }): Promise<boolean> {
+    const deleted = await this.em.nativeDelete(
+      InventoryItemEntity,
+      { store: input.storeId, product: input.productId } as any,
+    );
+    return deleted > 0;
+  }
 
   async listInventoryItems(
     filter: InventoryItemFilter,

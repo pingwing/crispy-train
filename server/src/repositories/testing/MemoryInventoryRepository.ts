@@ -58,6 +58,11 @@ export class MemoryInventoryRepository implements IInventoryRepository {
     return { items, total, page: safePage, pageSize: safePageSize };
   }
 
+  async deleteInventoryItem(input: { storeId: string; productId: string }): Promise<boolean> {
+    const key = `${input.storeId}:${input.productId}`;
+    return this.db.inventoryByStoreProduct.delete(key);
+  }
+
   async upsertInventoryItem(input: {
     storeId: string;
     productId: string;

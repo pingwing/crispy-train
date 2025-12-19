@@ -118,4 +118,17 @@ export class InventoryService {
     if (!item) throw new ValidationError('Could not upsert inventory item');
     return item;
   }
+
+  async deleteInventoryItem(input: { storeId: string; productId: string }) {
+    const parsed = z
+      .object({
+        storeId: z.string().uuid(),
+        productId: z.string().uuid(),
+      })
+      .parse(input);
+
+    const deleted = await this.inventory.deleteInventoryItem(parsed);
+    if (!deleted) throw new NotFoundError('Inventory item not found');
+    return true;
+  }
 }

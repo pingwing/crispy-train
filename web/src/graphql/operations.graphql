@@ -74,6 +74,10 @@ mutation UpsertInventoryItem($input: InventoryItemUpsertInput!) {
   }
 }
 
+mutation DeleteInventoryItem($storeId: ID!, $productId: ID!) {
+  deleteInventoryItem(storeId: $storeId, productId: $productId)
+}
+
 mutation CreateProduct($input: ProductCreateInput!) {
   createProduct(input: $input) {
     id

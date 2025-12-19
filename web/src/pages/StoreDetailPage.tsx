@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
 import {
   useCreateProductMutation,
+  useDeleteInventoryItemMutation,
   useStoreDetailQuery,
   useUpdateStoreMutation,
   useUpsertInventoryItemMutation,
@@ -20,6 +21,7 @@ export function StoreDetailPage() {
   const [{ fetching: savingMutation }, upsertInventoryItem] = useUpsertInventoryItemMutation();
   const [{ fetching: creatingProductMutation }, createProduct] = useCreateProductMutation();
   const [{ fetching: updatingStoreMutation }, updateStore] = useUpdateStoreMutation();
+  const [{ fetching: deletingMutation }, deleteInventoryItem] = useDeleteInventoryItemMutation();
 
   const store = data?.store;
   const summary = data?.storeInventorySummary;
@@ -234,7 +236,28 @@ export function StoreDetailPage() {
                           </button>
                         </div>
                       ) : (
-                        <button onClick={() => startEdit(it)}>Edit</button>
+                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
+                          <button disabled={deletingMutation} onClick={() => startEdit(it)}>
+                            Edit
+                          </button>
+                          <button
+                            disabled={deletingMutation}
+                            onClick={async () => {
+                              setFormError('');
+                              if (!store) return;
+                              const ok = window.confirm(`Remove "${it.product.name}" from this store?`);
+                              if (!ok) return;
+                              const res = await deleteInventoryItem({ storeId: store.id, productId: it.product.id });
+                              if (res.error) {
+                                setFormError(res.error.message);
+                                return;
+                              }
+                              await reexecute({ requestPolicy: 'network-only' });
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>

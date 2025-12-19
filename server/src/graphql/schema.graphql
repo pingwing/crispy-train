@@ -21,6 +21,7 @@ type Mutation {
   updateProduct(id: ID!, input: ProductUpdateInput!): Product!
 
   upsertInventoryItem(input: InventoryItemUpsertInput!): InventoryItem!
+  deleteInventoryItem(storeId: ID!, productId: ID!): Boolean!
 }
 
 type Store {

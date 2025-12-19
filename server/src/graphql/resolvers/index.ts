@@ -105,6 +105,17 @@ export const resolvers: Resolvers = {
         throw toGraphQLError(e);
       }
     },
+
+    deleteInventoryItem: async (_p, args, ctx) => {
+      try {
+        return await ctx.services.inventoryService.deleteInventoryItem({
+          storeId: args.storeId,
+          productId: args.productId,
+        });
+      } catch (e) {
+        throw toGraphQLError(e);
+      }
+    },
   },
 
   Store: {

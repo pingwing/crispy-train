@@ -73,6 +73,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   createProduct: Product;
   createStore: Store;
+  deleteInventoryItem: Scalars['Boolean']['output'];
   updateProduct: Product;
   updateStore: Store;
   upsertInventoryItem: InventoryItem;
@@ -86,6 +87,12 @@ export type MutationCreateProductArgs = {
 
 export type MutationCreateStoreArgs = {
   input: StoreCreateInput;
+};
+
+
+export type MutationDeleteInventoryItemArgs = {
+  productId: Scalars['ID']['input'];
+  storeId: Scalars['ID']['input'];
 };
 
 
@@ -336,6 +343,7 @@ export type InventoryItemPageResolvers<ContextType = GraphQLContext, ParentType 
 export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createProduct?: Resolver<ResolversTypes['Product'], ParentType, ContextType, RequireFields<MutationCreateProductArgs, 'input'>>;
   createStore?: Resolver<ResolversTypes['Store'], ParentType, ContextType, RequireFields<MutationCreateStoreArgs, 'input'>>;
+  deleteInventoryItem?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationDeleteInventoryItemArgs, 'productId' | 'storeId'>>;
   updateProduct?: Resolver<ResolversTypes['Product'], ParentType, ContextType, RequireFields<MutationUpdateProductArgs, 'id' | 'input'>>;
   updateStore?: Resolver<ResolversTypes['Store'], ParentType, ContextType, RequireFields<MutationUpdateStoreArgs, 'id' | 'input'>>;
   upsertInventoryItem?: Resolver<ResolversTypes['InventoryItem'], ParentType, ContextType, RequireFields<MutationUpsertInventoryItemArgs, 'input'>>;

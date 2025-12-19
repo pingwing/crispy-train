@@ -70,6 +70,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   createProduct: Product;
   createStore: Store;
+  deleteInventoryItem: Scalars['Boolean']['output'];
   updateProduct: Product;
   updateStore: Store;
   upsertInventoryItem: InventoryItem;
@@ -83,6 +84,12 @@ export type MutationCreateProductArgs = {
 
 export type MutationCreateStoreArgs = {
   input: StoreCreateInput;
+};
+
+
+export type MutationDeleteInventoryItemArgs = {
+  productId: Scalars['ID']['input'];
+  storeId: Scalars['ID']['input'];
 };
 
 
@@ -217,6 +224,14 @@ export type UpsertInventoryItemMutationVariables = Exact<{
 
 export type UpsertInventoryItemMutation = { __typename?: 'Mutation', upsertInventoryItem: { __typename?: 'InventoryItem', id: string, price: string, quantity: number, inventoryValue: string, product: { __typename?: 'Product', id: string, name: string, category: string }, store: { __typename?: 'Store', id: string, name: string } } };
 
+export type DeleteInventoryItemMutationVariables = Exact<{
+  storeId: Scalars['ID']['input'];
+  productId: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteInventoryItemMutation = { __typename?: 'Mutation', deleteInventoryItem: boolean };
+
 export type CreateProductMutationVariables = Exact<{
   input: ProductCreateInput;
 }>;
@@ -335,6 +350,15 @@ export const UpsertInventoryItemDocument = gql`
 
 export function useUpsertInventoryItemMutation() {
   return Urql.useMutation<UpsertInventoryItemMutation, UpsertInventoryItemMutationVariables>(UpsertInventoryItemDocument);
+};
+export const DeleteInventoryItemDocument = gql`
+    mutation DeleteInventoryItem($storeId: ID!, $productId: ID!) {
+  deleteInventoryItem(storeId: $storeId, productId: $productId)
+}
+    `;
+
+export function useDeleteInventoryItemMutation() {
+  return Urql.useMutation<DeleteInventoryItemMutation, DeleteInventoryItemMutationVariables>(DeleteInventoryItemDocument);
 };
 export const CreateProductDocument = gql`
     mutation CreateProduct($input: ProductCreateInput!) {
