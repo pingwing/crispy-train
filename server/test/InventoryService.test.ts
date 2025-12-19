@@ -1,8 +1,7 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
+import test from 'node:test';
+import assert from 'node:assert/strict';
 
-// Tests run against compiled output to keep runtime simple (no TS test runner needed).
-const { createTestServices } = require('./createTestServices');
+import { createTestServices } from './createTestServices';
 
 test('InventoryService can create stores/products and upsert inventory items (in-memory repos)', async () => {
   const { inventoryService } = createTestServices();
@@ -37,9 +36,11 @@ test('InventoryService enforces unique store name (in-memory repos)', async () =
 
   await assert.rejects(
     () => inventoryService.createStore({ name: 'Unique', location: null }),
-    (err) => {
+    (err: any) => {
       assert.equal(err?.name, 'ValidationError');
       return true;
     },
   );
 });
+
+
