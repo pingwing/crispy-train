@@ -51,12 +51,32 @@ export function createDbProvider(): {
   close: () => Promise<void>;
 } {
   const enabled = process.env.REPO_CONTRACT_DB === '1';
+  const allowDestructive = process.env.REPO_CONTRACT_DB_ALLOW_DESTRUCTIVE === '1';
   let orm: Awaited<ReturnType<typeof initOrm>> | null = null;
 
   async function ensureOrm() {
     if (orm) return orm;
     orm = await initOrm();
     await orm.migrator.up();
+
+    // Safety guard: DB-backed contract tests TRUNCATE tables.
+    // Refuse to run unless we're clearly pointed at a test database, or the user explicitly opts in.
+    const dbRow = (await orm.em
+      .getConnection()
+      .execute('select current_database() as db;', [], 'get')) as any;
+    const dbName = String(dbRow?.db ?? '');
+    const looksLikeTestDb = /_test$/i.test(dbName);
+    if (!looksLikeTestDb && !allowDestructive) {
+      const msg =
+        `Refusing to run DB-backed repo contract tests against database "${dbName}". ` +
+        `These tests TRUNCATE tables. Use a dedicated test DB (recommended: name ending with "_test") ` +
+        `set the contract DB by exporting DB_NAME=always_open_shop_test.`;
+        `or set REPO_CONTRACT_DB_ALLOW_DESTRUCTIVE=1 to override.`;
+      await orm.close(true);
+      orm = null;
+      throw new Error(msg);
+    }
+
     return orm;
   }
 
@@ -179,7 +199,16 @@ export function withProviders(
     describe(db.name, () => {
       before(async () => {
         // Eager init so DB connectivity/migrations issues show up clearly.
-        await db.get();
+        // IMPORTANT: serialize initial DB bootstrap across processes.
+        // Node's test runner can execute multiple test files in parallel, and initOrm()
+        // may "check db exists -> create database -> migrate". Without a lock, workers can race
+        // and attempt to connect/migrate before the DB is created.
+        const unlock = await mutex.acquire();
+        try {
+          await db.get();
+        } finally {
+          await unlock();
+        }
       });
 
       beforeEach(async () => {
