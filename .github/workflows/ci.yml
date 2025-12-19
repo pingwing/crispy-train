@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   server-tests:
-    name: server / test
+    name: server / coverage
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -28,9 +28,16 @@ jobs:
         working-directory: server
         run: npm ci
 
-      - name: Test
+      - name: Coverage
         working-directory: server
-        run: npm test
+        run: npm run coverage
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-coverage
+          path: server/coverage
+          if-no-files-found: error
 
   web-build:
     name: web / build
