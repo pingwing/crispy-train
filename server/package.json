@@ -15,8 +15,9 @@
     "migration:up": "mikro-orm migration:up",
     "migration:down": "mikro-orm migration:down",
     "migration:create": "mikro-orm migration:create",
-    "seed": "npm run build && node dist/db/seed/runSeed.js",
-    "test": "npm run typecheck && echo 'Running tests...' && tsx --test $(find test -name '*.test.ts' -print)"
+    "seed": "echo 'Creating initial seed DB data...' && npm run build && node dist/db/seed/runSeed.js",
+    "test": "npm run typecheck && echo 'Running tests...' && tsx --test $(find test -name '*.test.ts' -print)",
+    "coverage": "npm run typecheck && echo 'Running coverage...' && c8 tsx --test $(find test -name '*.test.ts' -print)"
   },
   "keywords": [],
   "author": "",
@@ -46,6 +47,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
+    "c8": "^10.1.3",
     "nodemon": "^3.1.11",
     "prettier": "^3.7.4",
     "ts-node": "^10.9.2",

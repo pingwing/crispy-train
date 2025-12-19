@@ -42,5 +42,3 @@ test('InventoryService enforces unique store name (in-memory repos)', async () =
     },
   );
 });
-
-

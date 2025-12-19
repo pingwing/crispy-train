@@ -6,7 +6,9 @@ import {
 } from '../src/repositories/testing';
 import { InventoryService } from '../src/services/InventoryService';
 
-export function createTestServices(seed?: Parameters<typeof createMemoryDb>[0]) {
+export function createTestServices(
+  seed?: Parameters<typeof createMemoryDb>[0],
+) {
   const db = createMemoryDb(seed);
   const stores = new MemoryStoreRepository(db);
   const products = new MemoryProductRepository(db);
@@ -20,5 +22,3 @@ export function createTestServices(seed?: Parameters<typeof createMemoryDb>[0]) 
     inventoryService: new InventoryService(stores, products, inventory),
   };
 }
-
-

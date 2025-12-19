@@ -1,0 +1,14 @@
+{
+  "all": true,
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "**/*.d.ts",
+    "dist/**",
+    "test/**",
+    "src/db/migrations/**",
+    "src/graphql/generated/**"
+  ],
+  "reporter": ["text", "html", "lcov"],
+  "report-dir": "coverage",
+  "exclude-after-remap": true
+}

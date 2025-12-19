@@ -5,6 +5,8 @@
 .env.production.local
 node_modules
 dist
+coverage
+.nyc_output
 uploads
 .DS_Store
 .idea
