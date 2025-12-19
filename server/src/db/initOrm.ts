@@ -6,5 +6,3 @@ import mikroOrmConfig from './mikro-orm.config';
 export async function initOrm(): Promise<MikroORM> {
   return MikroORM.init(mikroOrmConfig);
 }
-
-

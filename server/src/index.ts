@@ -45,7 +45,8 @@ async function main() {
     '/graphql',
     expressMiddleware<GraphQLContext>(apollo, {
       context: async ({ req }: { req: express.Request }) => {
-        const em = (RequestContext.getEntityManager() ?? orm.em.fork()) as SqlEntityManager;
+        const em = (RequestContext.getEntityManager() ??
+          orm.em.fork()) as SqlEntityManager;
         const services = createServices({
           em,
           StoreRepository,
@@ -58,7 +59,7 @@ async function main() {
           orm,
           em,
           req,
-          services
+          services,
         };
       },
     }),
@@ -75,5 +76,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
-

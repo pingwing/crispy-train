@@ -12,7 +12,7 @@ export function loadSchemaSDL(): string {
     if (fs.existsSync(p)) return fs.readFileSync(p, 'utf8');
   }
 
-  throw new Error(`Could not find GraphQL schema file. Looked in: ${candidates.join(', ')}`);
+  throw new Error(
+    `Could not find GraphQL schema file. Looked in: ${candidates.join(', ')}`,
+  );
 }
-
-

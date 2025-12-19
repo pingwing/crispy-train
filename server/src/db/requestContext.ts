@@ -8,5 +8,3 @@ export function mikroOrmRequestContext(orm: MikroORM) {
     RequestContext.create(orm.em.fork(), next);
   };
 }
-
-

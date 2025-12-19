@@ -1,4 +1,11 @@
-import { Collection, Entity, OneToMany, OptionalProps, PrimaryKey, Property } from '@mikro-orm/core';
+import {
+  Collection,
+  Entity,
+  OneToMany,
+  OptionalProps,
+  PrimaryKey,
+  Property,
+} from '@mikro-orm/core';
 import { InventoryItem } from './InventoryItem';
 import { newId } from '../../utils/ids';
 

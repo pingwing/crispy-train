@@ -4,7 +4,11 @@ type Query {
   _health: String!
   stores: [Store!]!
   store(id: ID!): Store
-  inventoryItems(filter: InventoryItemFilterInput, page: Int = 1, pageSize: Int = 20): InventoryItemPage!
+  inventoryItems(
+    filter: InventoryItemFilterInput
+    page: Int = 1
+    pageSize: Int = 20
+  ): InventoryItemPage!
   storeInventorySummary(storeId: ID!): StoreInventorySummary!
 }
 
@@ -101,5 +105,3 @@ type StoreInventorySummary {
   totalValue: String!
   lowStockCount: Int!
 }
-
-

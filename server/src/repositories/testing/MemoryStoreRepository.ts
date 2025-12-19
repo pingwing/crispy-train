@@ -8,7 +8,9 @@ export class MemoryStoreRepository implements IStoreRepository {
   constructor(private readonly db: MemoryDb) {}
 
   async list(): Promise<Store[]> {
-    return [...this.db.stores.values()].sort((a, b) => a.name.localeCompare(b.name));
+    return [...this.db.stores.values()].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
   }
 
   async getById(id: string): Promise<Store | null> {
@@ -26,30 +28,57 @@ export class MemoryStoreRepository implements IStoreRepository {
     return found ? this.toEntity(found) : null;
   }
 
-  async create(input: { name: string; location?: string | null }): Promise<Store> {
-    const exists = [...this.db.stores.values()].some((s) => s.name === input.name);
-    if (exists) throw new ValidationError('Store name must be unique', { field: 'name' });
+  async create(input: {
+    name: string;
+    location?: string | null;
+  }): Promise<Store> {
+    const exists = [...this.db.stores.values()].some(
+      (s) => s.name === input.name,
+    );
+    if (exists)
+      throw new ValidationError('Store name must be unique', { field: 'name' });
 
     const now = new Date();
-    const store = new Store(newId(), input.name, input.location ?? undefined, now, now);
+    const store = new Store(
+      newId(),
+      input.name,
+      input.location ?? undefined,
+      now,
+      now,
+    );
     this.db.stores.set(store.id, store);
     return store;
   }
 
-  async update(id: string, input: { name?: string; location?: string | null }): Promise<Store | null> {
+  async update(
+    id: string,
+    input: { name?: string; location?: string | null },
+  ): Promise<Store | null> {
     const store = this.db.stores.get(id);
     if (!store) return null;
 
     if (input.name && input.name !== store.name) {
-      const exists = [...this.db.stores.values()].some((s) => s.name === input.name && s.id !== store.id);
-      if (exists) throw new ValidationError('Store name must be unique', { field: 'name' });
+      const exists = [...this.db.stores.values()].some(
+        (s) => s.name === input.name && s.id !== store.id,
+      );
+      if (exists)
+        throw new ValidationError('Store name must be unique', {
+          field: 'name',
+        });
       store.name = input.name;
     }
 
-    if (input.location !== undefined) store.location = input.location ?? undefined;
+    if (input.location !== undefined)
+      store.location = input.location ?? undefined;
 
     // Domain model has readonly updatedAt, so keep store as-is and replace it with a new instance.
-    const updated = new Store(store.id, store.name, store.location, store.createdAt, new Date());
+    const updated = new Store(
+      store.id,
+      store.name,
+      store.location,
+      store.createdAt,
+      new Date(),
+    );
     // Preserve any optional inventoryItems reference if tests use it.
     updated.inventoryItems = store.inventoryItems;
 
@@ -74,5 +103,3 @@ export class MemoryStoreRepository implements IStoreRepository {
     } as unknown as StoreEntity;
   }
 }
-
-

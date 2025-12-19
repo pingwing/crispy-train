@@ -24,5 +24,3 @@ export function createServices(deps: CreateServicesDeps) {
     inventoryService: new deps.InventoryService(stores, products, inventory),
   };
 }
-
-

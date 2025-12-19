@@ -1,12 +1,21 @@
 import { asMoneyString, InventoryItem } from '../../domain';
-import type { IInventoryRepository, InventoryItemFilter, Paged, StoreInventorySummary } from '../InventoryRepository';
+import type {
+  IInventoryRepository,
+  InventoryItemFilter,
+  Paged,
+  StoreInventorySummary,
+} from '../InventoryRepository';
 import type { MemoryDb } from './memoryDb';
 import { newId } from '../../utils/ids';
 
 export class MemoryInventoryRepository implements IInventoryRepository {
   constructor(private readonly db: MemoryDb) {}
 
-  async listInventoryItems(filter: InventoryItemFilter, page: number, pageSize: number): Promise<Paged<InventoryItem>> {
+  async listInventoryItems(
+    filter: InventoryItemFilter,
+    page: number,
+    pageSize: number,
+  ): Promise<Paged<InventoryItem>> {
     const safePage = Math.max(1, page);
     const safePageSize = Math.min(100, Math.max(1, pageSize));
     const offset = (safePage - 1) * safePageSize;
@@ -15,9 +24,12 @@ export class MemoryInventoryRepository implements IInventoryRepository {
 
     const filtered = rows.filter((ii) => {
       if (filter.storeId && ii.store.id !== filter.storeId) return false;
-      if (filter.category && ii.product.category !== filter.category) return false;
-      if (filter.minQuantity != null && ii.quantity < filter.minQuantity) return false;
-      if (filter.maxQuantity != null && ii.quantity > filter.maxQuantity) return false;
+      if (filter.category && ii.product.category !== filter.category)
+        return false;
+      if (filter.minQuantity != null && ii.quantity < filter.minQuantity)
+        return false;
+      if (filter.maxQuantity != null && ii.quantity > filter.maxQuantity)
+        return false;
 
       if (filter.search) {
         const q = filter.search.toLowerCase();
@@ -26,8 +38,10 @@ export class MemoryInventoryRepository implements IInventoryRepository {
       }
 
       const priceN = Number(ii.price);
-      if (filter.minPrice != null && priceN < Number(filter.minPrice)) return false;
-      if (filter.maxPrice != null && priceN > Number(filter.maxPrice)) return false;
+      if (filter.minPrice != null && priceN < Number(filter.minPrice))
+        return false;
+      if (filter.maxPrice != null && priceN > Number(filter.maxPrice))
+        return false;
 
       return true;
     });
@@ -44,7 +58,12 @@ export class MemoryInventoryRepository implements IInventoryRepository {
     return { items, total, page: safePage, pageSize: safePageSize };
   }
 
-  async upsertInventoryItem(input: { storeId: string; productId: string; price: string; quantity: number }): Promise<InventoryItem | null> {
+  async upsertInventoryItem(input: {
+    storeId: string;
+    productId: string;
+    price: string;
+    quantity: number;
+  }): Promise<InventoryItem | null> {
     const store = this.db.stores.get(input.storeId);
     if (!store) return null;
     const product = this.db.products.get(input.productId);
@@ -55,27 +74,53 @@ export class MemoryInventoryRepository implements IInventoryRepository {
     const now = new Date();
 
     if (!existing) {
-      const ii = new InventoryItem(newId(), store, product, input.price, input.quantity, now, now);
+      const ii = new InventoryItem(
+        newId(),
+        store,
+        product,
+        input.price,
+        input.quantity,
+        now,
+        now,
+      );
       this.db.inventoryByStoreProduct.set(key, ii);
       return ii;
     }
 
     // Domain model has readonly updatedAt, so replace the instance.
-    const updated = new InventoryItem(existing.id, store, product, input.price, input.quantity, existing.createdAt, now);
+    const updated = new InventoryItem(
+      existing.id,
+      store,
+      product,
+      input.price,
+      input.quantity,
+      existing.createdAt,
+      now,
+    );
     this.db.inventoryByStoreProduct.set(key, updated);
     return updated;
   }
 
-  async storeInventorySummary(storeId: string): Promise<StoreInventorySummary | null> {
+  async storeInventorySummary(
+    storeId: string,
+  ): Promise<StoreInventorySummary | null> {
     const store = this.db.stores.get(storeId);
     if (!store) return null;
 
-    const items = [...this.db.inventoryByStoreProduct.values()].filter((ii) => ii.store.id === storeId);
+    const items = [...this.db.inventoryByStoreProduct.values()].filter(
+      (ii) => ii.store.id === storeId,
+    );
 
     const totalSkus = items.length;
     const totalQuantity = items.reduce((sum, ii) => sum + ii.quantity, 0);
-    const totalValueN = items.reduce((sum, ii) => sum + Number(ii.price) * ii.quantity, 0);
-    const lowStockCount = items.reduce((sum, ii) => sum + (ii.quantity <= 5 ? 1 : 0), 0);
+    const totalValueN = items.reduce(
+      (sum, ii) => sum + Number(ii.price) * ii.quantity,
+      0,
+    );
+    const lowStockCount = items.reduce(
+      (sum, ii) => sum + (ii.quantity <= 5 ? 1 : 0),
+      0,
+    );
 
     return {
       store,
@@ -86,5 +131,3 @@ export class MemoryInventoryRepository implements IInventoryRepository {
     };
   }
 }
-
-

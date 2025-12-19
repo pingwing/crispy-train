@@ -8,18 +8,44 @@ export async function ensureSeedData(em: EntityManager): Promise<void> {
 
   if (storeCount > 0 || productCount > 0 || inventoryCount > 0) return;
 
-  const downtown = em.create(Store, { name: 'Downtown Market', location: 'Downtown' });
-  const uptown = em.create(Store, { name: 'Uptown Grocery', location: 'Uptown' });
-  const airport = em.create(Store, { name: 'Airport MiniMart', location: 'Airport' });
+  const downtown = em.create(Store, {
+    name: 'Downtown Market',
+    location: 'Downtown',
+  });
+  const uptown = em.create(Store, {
+    name: 'Uptown Grocery',
+    location: 'Uptown',
+  });
+  const airport = em.create(Store, {
+    name: 'Airport MiniMart',
+    location: 'Airport',
+  });
 
   const cola = em.create(Product, { name: 'Cola', category: 'Beverages' });
-  const water = em.create(Product, { name: 'Sparkling Water', category: 'Beverages' });
-  const chips = em.create(Product, { name: 'Potato Chips', category: 'Snacks' });
-  const chocolate = em.create(Product, { name: 'Dark Chocolate', category: 'Snacks' });
+  const water = em.create(Product, {
+    name: 'Sparkling Water',
+    category: 'Beverages',
+  });
+  const chips = em.create(Product, {
+    name: 'Potato Chips',
+    category: 'Snacks',
+  });
+  const chocolate = em.create(Product, {
+    name: 'Dark Chocolate',
+    category: 'Snacks',
+  });
   const soap = em.create(Product, { name: 'Hand Soap', category: 'Household' });
-  const batteries = em.create(Product, { name: 'AA Batteries (4-pack)', category: 'Household' });
+  const batteries = em.create(Product, {
+    name: 'AA Batteries (4-pack)',
+    category: 'Household',
+  });
 
-  const items: Array<{ store: Store; product: Product; price: string; quantity: number }> = [
+  const items: Array<{
+    store: Store;
+    product: Product;
+    price: string;
+    quantity: number;
+  }> = [
     { store: downtown, product: cola, price: '1.99', quantity: 42 },
     { store: downtown, product: chips, price: '2.49', quantity: 15 },
     { store: downtown, product: soap, price: '3.99', quantity: 8 },
@@ -39,5 +65,3 @@ export async function ensureSeedData(em: EntityManager): Promise<void> {
 
   await em.flush();
 }
-
-

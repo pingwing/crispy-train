@@ -24,7 +24,10 @@ export class MemoryProductRepository implements IProductRepository {
     return p;
   }
 
-  async update(id: string, input: { name?: string; category?: string }): Promise<Product | null> {
+  async update(
+    id: string,
+    input: { name?: string; category?: string },
+  ): Promise<Product | null> {
     const p = this.db.products.get(id);
     if (!p) return null;
 
@@ -45,5 +48,3 @@ export class MemoryProductRepository implements IProductRepository {
     } as unknown as ProductEntity;
   }
 }
-
-

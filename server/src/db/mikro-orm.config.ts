@@ -22,5 +22,3 @@ export default defineConfig({
 
   debug: env.NODE_ENV !== 'production',
 });
-
-

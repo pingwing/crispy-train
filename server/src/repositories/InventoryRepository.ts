@@ -1,5 +1,9 @@
 import type { SqlEntityManager } from '@mikro-orm/postgresql';
-import { InventoryItem as InventoryItemEntity, Product as ProductEntity, Store as StoreEntity } from '../db/entities';
+import {
+  InventoryItem as InventoryItemEntity,
+  Product as ProductEntity,
+  Store as StoreEntity,
+} from '../db/entities';
 import { asMoneyString, InventoryItem, Store } from '../domain';
 import { toDomainInventoryItem, toDomainStore } from './mappers';
 
@@ -13,7 +17,12 @@ export type InventoryItemFilter = {
   maxQuantity?: number;
 };
 
-export type Paged<T> = { items: T[]; total: number; page: number; pageSize: number };
+export type Paged<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
 
 export type StoreInventorySummary = {
   store: Store;
@@ -24,15 +33,28 @@ export type StoreInventorySummary = {
 };
 
 export interface IInventoryRepository {
-  listInventoryItems(filter: InventoryItemFilter, page: number, pageSize: number): Promise<Paged<InventoryItem>>;
-  upsertInventoryItem(input: { storeId: string; productId: string; price: string; quantity: number }): Promise<InventoryItem | null>;
+  listInventoryItems(
+    filter: InventoryItemFilter,
+    page: number,
+    pageSize: number,
+  ): Promise<Paged<InventoryItem>>;
+  upsertInventoryItem(input: {
+    storeId: string;
+    productId: string;
+    price: string;
+    quantity: number;
+  }): Promise<InventoryItem | null>;
   storeInventorySummary(storeId: string): Promise<StoreInventorySummary | null>;
 }
 
 export class InventoryRepository implements IInventoryRepository {
   constructor(private readonly em: SqlEntityManager) {}
 
-  async listInventoryItems(filter: InventoryItemFilter, page: number, pageSize: number): Promise<Paged<InventoryItem>> {
+  async listInventoryItems(
+    filter: InventoryItemFilter,
+    page: number,
+    pageSize: number,
+  ): Promise<Paged<InventoryItem>> {
     const safePage = Math.max(1, page);
     const safePageSize = Math.min(100, Math.max(1, pageSize));
     const offset = (safePage - 1) * safePageSize;
@@ -44,14 +66,20 @@ export class InventoryRepository implements IInventoryRepository {
 
     if (filter.storeId) qb.andWhere({ store: filter.storeId });
     if (filter.category) qb.andWhere({ 'p.category': filter.category });
-    if (filter.minQuantity != null) qb.andWhere({ quantity: { $gte: filter.minQuantity } });
-    if (filter.maxQuantity != null) qb.andWhere({ quantity: { $lte: filter.maxQuantity } });
+    if (filter.minQuantity != null)
+      qb.andWhere({ quantity: { $gte: filter.minQuantity } });
+    if (filter.maxQuantity != null)
+      qb.andWhere({ quantity: { $lte: filter.maxQuantity } });
     if (filter.search) {
       const like = `%${filter.search}%`;
-      qb.andWhere({ $or: [{ 'p.name': { $ilike: like } }, { 's.name': { $ilike: like } }] });
+      qb.andWhere({
+        $or: [{ 'p.name': { $ilike: like } }, { 's.name': { $ilike: like } }],
+      });
     }
-    if (filter.minPrice != null) qb.andWhere({ price: { $gte: filter.minPrice } });
-    if (filter.maxPrice != null) qb.andWhere({ price: { $lte: filter.maxPrice } });
+    if (filter.minPrice != null)
+      qb.andWhere({ price: { $gte: filter.minPrice } });
+    if (filter.maxPrice != null)
+      qb.andWhere({ price: { $lte: filter.maxPrice } });
 
     qb.orderBy({ 's.name': 'asc', 'p.name': 'asc' });
     qb.offset(offset).limit(safePageSize);
@@ -65,15 +93,31 @@ export class InventoryRepository implements IInventoryRepository {
     };
   }
 
-  async upsertInventoryItem(input: { storeId: string; productId: string; price: string; quantity: number }): Promise<InventoryItem | null> {
+  async upsertInventoryItem(input: {
+    storeId: string;
+    productId: string;
+    price: string;
+    quantity: number;
+  }): Promise<InventoryItem | null> {
     const store = await this.em.findOne(StoreEntity, { id: input.storeId });
     if (!store) return null;
-    const product = await this.em.findOne(ProductEntity, { id: input.productId });
+    const product = await this.em.findOne(ProductEntity, {
+      id: input.productId,
+    });
     if (!product) return null;
 
-    let item = await this.em.findOne(InventoryItemEntity, { store: store.id, product: product.id }, { populate: ['store', 'product'] as const });
+    let item = await this.em.findOne(
+      InventoryItemEntity,
+      { store: store.id, product: product.id },
+      { populate: ['store', 'product'] as const },
+    );
     if (!item) {
-      item = this.em.create(InventoryItemEntity, { store, product, price: input.price, quantity: input.quantity });
+      item = this.em.create(InventoryItemEntity, {
+        store,
+        product,
+        price: input.price,
+        quantity: input.quantity,
+      });
       await this.em.persist(item).flush();
       await this.em.populate(item, ['store', 'product'] as const);
       return toDomainInventoryItem(item);
@@ -85,7 +129,9 @@ export class InventoryRepository implements IInventoryRepository {
     return toDomainInventoryItem(item);
   }
 
-  async storeInventorySummary(storeId: string): Promise<StoreInventorySummary | null> {
+  async storeInventorySummary(
+    storeId: string,
+  ): Promise<StoreInventorySummary | null> {
     const storeEntity = await this.em.findOne(StoreEntity, { id: storeId });
     if (!storeEntity) return null;
 
@@ -110,6 +156,3 @@ export class InventoryRepository implements IInventoryRepository {
     };
   }
 }
-
-
-

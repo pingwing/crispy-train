@@ -4,13 +4,17 @@ import { NotFoundError, ValidationError } from '../../domain';
 
 function toGraphQLError(err: unknown): GraphQLError {
   if (err instanceof ValidationError) {
-    return new GraphQLError(err.message, { extensions: { code: 'BAD_USER_INPUT', details: err.details } });
+    return new GraphQLError(err.message, {
+      extensions: { code: 'BAD_USER_INPUT', details: err.details },
+    });
   }
   if (err instanceof NotFoundError) {
     return new GraphQLError(err.message, { extensions: { code: 'NOT_FOUND' } });
   }
   if (err instanceof GraphQLError) return err;
-  return new GraphQLError('Internal server error', { extensions: { code: 'INTERNAL' } });
+  return new GraphQLError('Internal server error', {
+    extensions: { code: 'INTERNAL' },
+  });
 }
 
 export const resolvers: Resolvers = {
@@ -31,18 +35,29 @@ export const resolvers: Resolvers = {
         page: args.page ?? undefined,
         pageSize: args.pageSize ?? undefined,
       });
-      return { items: result.items, pageInfo: { page: result.page, pageSize: result.pageSize, total: result.total } };
+      return {
+        items: result.items,
+        pageInfo: {
+          page: result.page,
+          pageSize: result.pageSize,
+          total: result.total,
+        },
+      };
     },
 
     storeInventorySummary: async (_p, args, ctx) => {
-      return ctx.services.inventoryService.getStoreInventorySummary(args.storeId);
+      return ctx.services.inventoryService.getStoreInventorySummary(
+        args.storeId,
+      );
     },
   },
 
   Mutation: {
     createStore: async (_p, args, ctx) => {
       try {
-        return await ctx.services.inventoryService.createStore(args.input as any);
+        return await ctx.services.inventoryService.createStore(
+          args.input as any,
+        );
       } catch (e) {
         throw toGraphQLError(e);
       }
@@ -50,7 +65,10 @@ export const resolvers: Resolvers = {
 
     updateStore: async (_p, args, ctx) => {
       try {
-        return await ctx.services.inventoryService.updateStore(args.id, args.input as any);
+        return await ctx.services.inventoryService.updateStore(
+          args.id,
+          args.input as any,
+        );
       } catch (e) {
         throw toGraphQLError(e);
       }
@@ -58,7 +76,9 @@ export const resolvers: Resolvers = {
 
     createProduct: async (_p, args, ctx) => {
       try {
-        return await ctx.services.inventoryService.createProduct(args.input as any);
+        return await ctx.services.inventoryService.createProduct(
+          args.input as any,
+        );
       } catch (e) {
         throw toGraphQLError(e);
       }
@@ -66,7 +86,10 @@ export const resolvers: Resolvers = {
 
     updateProduct: async (_p, args, ctx) => {
       try {
-        return await ctx.services.inventoryService.updateProduct(args.id, args.input as any);
+        return await ctx.services.inventoryService.updateProduct(
+          args.id,
+          args.input as any,
+        );
       } catch (e) {
         throw toGraphQLError(e);
       }
@@ -74,7 +97,9 @@ export const resolvers: Resolvers = {
 
     upsertInventoryItem: async (_p, args, ctx) => {
       try {
-        return await ctx.services.inventoryService.upsertInventoryItem(args.input as any);
+        return await ctx.services.inventoryService.upsertInventoryItem(
+          args.input as any,
+        );
       } catch (e) {
         throw toGraphQLError(e);
       }
@@ -89,5 +114,3 @@ export const resolvers: Resolvers = {
 
   // inventoryValue is a getter on the domain model; default resolver will pick it up.
 };
-
-

@@ -1,5 +1,8 @@
 import { z } from 'zod';
-import type { IInventoryRepository, InventoryItemFilter } from '../repositories/InventoryRepository';
+import type {
+  IInventoryRepository,
+  InventoryItemFilter,
+} from '../repositories/InventoryRepository';
 import type { IStoreRepository } from '../repositories/StoreRepository';
 import type { IProductRepository } from '../repositories/ProductRepository';
 import { NotFoundError, ValidationError } from '../domain';
@@ -19,7 +22,11 @@ export class InventoryService {
     return this.stores.getById(id);
   }
 
-  async listInventoryItems(args: { filter?: InventoryItemFilter; page?: number; pageSize?: number }) {
+  async listInventoryItems(args: {
+    filter?: InventoryItemFilter;
+    page?: number;
+    pageSize?: number;
+  }) {
     const page = Math.max(1, args.page ?? 1);
     const pageSize = Math.min(100, Math.max(1, args.pageSize ?? 20));
     const filter = args.filter ?? {};
@@ -42,7 +49,10 @@ export class InventoryService {
     return this.stores.create(parsed);
   }
 
-  async updateStore(id: string, input: { name?: string; location?: string | null }) {
+  async updateStore(
+    id: string,
+    input: { name?: string; location?: string | null },
+  ) {
     const parsed = z
       .object({
         name: z.string().trim().min(1).max(120).optional(),
@@ -79,7 +89,12 @@ export class InventoryService {
     return product;
   }
 
-  async upsertInventoryItem(input: { storeId: string; productId: string; price: string; quantity: number }) {
+  async upsertInventoryItem(input: {
+    storeId: string;
+    productId: string;
+    price: string;
+    quantity: number;
+  }) {
     const parsed = z
       .object({
         storeId: z.string().uuid(),
@@ -102,5 +117,3 @@ export class InventoryService {
     return item;
   }
 }
-
-

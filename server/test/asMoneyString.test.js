@@ -16,4 +16,3 @@ test('asMoneyString throws a custom error for not-a-number inputs', () => {
   assert.throws(() => asMoneyString('not-a-number'), NotANumberError);
   assert.throws(() => asMoneyString(NaN), NotANumberError);
 });
-

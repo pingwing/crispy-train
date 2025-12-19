@@ -11,7 +11,9 @@ export class Migration20251217140000 extends Migration {
         "updated_at" timestamptz not null
       );
     `);
-    this.addSql(`create unique index if not exists "store_name_unique" on "store" ("name");`);
+    this.addSql(
+      `create unique index if not exists "store_name_unique" on "store" ("name");`,
+    );
 
     this.addSql(`
       create table if not exists "product" (
@@ -22,7 +24,9 @@ export class Migration20251217140000 extends Migration {
         "updated_at" timestamptz not null
       );
     `);
-    this.addSql(`create index if not exists "product_category_idx" on "product" ("category");`);
+    this.addSql(
+      `create index if not exists "product_category_idx" on "product" ("category");`,
+    );
 
     this.addSql(`
       create table if not exists "inventory_item" (
@@ -40,8 +44,12 @@ export class Migration20251217140000 extends Migration {
     this.addSql(
       `create unique index if not exists "inventory_item_store_product_unique" on "inventory_item" ("store_id", "product_id");`,
     );
-    this.addSql(`create index if not exists "inventory_item_store_idx" on "inventory_item" ("store_id");`);
-    this.addSql(`create index if not exists "inventory_item_product_idx" on "inventory_item" ("product_id");`);
+    this.addSql(
+      `create index if not exists "inventory_item_store_idx" on "inventory_item" ("store_id");`,
+    );
+    this.addSql(
+      `create index if not exists "inventory_item_product_idx" on "inventory_item" ("product_id");`,
+    );
   }
 
   override async down(): Promise<void> {
@@ -50,5 +58,3 @@ export class Migration20251217140000 extends Migration {
     this.addSql(`drop table if exists "store" cascade;`);
   }
 }
-
-

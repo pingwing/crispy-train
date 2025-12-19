@@ -8,5 +8,3 @@ export type GraphQLContext = {
   req: Request;
   services: ReturnType<typeof createServices>;
 };
-
-

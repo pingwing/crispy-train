@@ -1,4 +1,11 @@
-import { Entity, ManyToOne, OptionalProps, PrimaryKey, Property, Unique } from '@mikro-orm/core';
+import {
+  Entity,
+  ManyToOne,
+  OptionalProps,
+  PrimaryKey,
+  Property,
+  Unique,
+} from '@mikro-orm/core';
 import { newId } from '../../utils/ids';
 import { Product } from './Product';
 import { Store } from './Store';
@@ -33,5 +40,3 @@ export class InventoryItem {
   @Property({ onUpdate: () => new Date() })
   updatedAt: Date = new Date();
 }
-
-
