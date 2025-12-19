@@ -14,7 +14,10 @@ import { initOrm } from './db/initOrm';
 import { mikroOrmRequestContext } from './db/requestContext';
 import { loadSchemaSDL } from './graphql/loadSchema';
 import { resolvers } from './graphql/resolvers';
+
 import type { GraphQLContext } from './graphql/types';
+
+// central Dependency Injection container for services and repositories
 import { createServices } from './services/createServices';
 import { InventoryRepository } from './repositories/InventoryRepository';
 import { ProductRepository } from './repositories/ProductRepository';
