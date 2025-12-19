@@ -13,6 +13,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  /* Prevent layout shift when content height crosses the viewport and the scrollbar appears/disappears. */
+  scrollbar-gutter: stable;
+  overflow-y: scroll;
+}
+
 a {
   font-weight: 500;
   color: #646cff;
@@ -24,8 +30,6 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -45,6 +49,15 @@ button {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+button:disabled:hover {
+  border-color: transparent;
 }
 button:hover {
   border-color: #646cff;

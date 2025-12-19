@@ -254,7 +254,16 @@ export function InventoryListPage() {
               <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
                 Prev
               </button>
-              <span style={{ fontSize: 12, color: '#555' }}>
+              <span
+                style={{
+                  fontSize: 12,
+                  color: '#555',
+                  minWidth: 92,
+                  textAlign: 'center',
+                  display: 'inline-block',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
                 Page <b>{currentPage}</b> / <b>{totalPages}</b>
               </span>
               <button
