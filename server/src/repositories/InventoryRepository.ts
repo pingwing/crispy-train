@@ -1,4 +1,5 @@
 import type { SqlEntityManager } from '@mikro-orm/postgresql';
+import { raw } from '@mikro-orm/core';
 import {
   InventoryItem as InventoryItemEntity,
   Product as ProductEntity,
@@ -138,10 +139,14 @@ export class InventoryRepository implements IInventoryRepository {
     const rows = await this.em
       .createQueryBuilder(InventoryItemEntity, 'ii')
       .select([
-        'count(ii.id) as total_skus',
-        'coalesce(sum(ii.quantity), 0) as total_quantity',
-        'coalesce(sum(ii.quantity * ii.price), 0) as total_value',
-        'coalesce(sum(case when ii.quantity <= 5 then 1 else 0 end), 0) as low_stock_count',
+        // Use raw SQL snippets for aggregates; otherwise MikroORM will quote them as identifiers
+        // (e.g. "count(ii"."id)") which breaks in Postgres.
+        raw('count(ii.id) as total_skus'),
+        raw('coalesce(sum(ii.quantity), 0) as total_quantity'),
+        raw('coalesce(sum(ii.quantity * ii.price), 0) as total_value'),
+        raw(
+          'coalesce(sum(case when ii.quantity <= 5 then 1 else 0 end), 0) as low_stock_count',
+        ),
       ])
       .where({ store: storeEntity.id })
       .execute('get');
