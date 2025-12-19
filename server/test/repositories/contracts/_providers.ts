@@ -56,7 +56,7 @@ export function createDbProvider(): {
   async function ensureOrm() {
     if (orm) return orm;
     orm = await initOrm();
-    await orm.getMigrator().up();
+    await orm.migrator.up();
     return orm;
   }
 
