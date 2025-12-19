@@ -33,6 +33,16 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      # Tiny HTTP GET check (no curl/wget needed): uses Node's built-in fetch.
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   web:
     build:
