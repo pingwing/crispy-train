@@ -20,12 +20,12 @@ export type InventoryItemFilter = {
 
 export type InventoryItemSort = {
   field:
-    | 'STORE_NAME'
-    | 'PRODUCT_NAME'
-    | 'CATEGORY'
-    | 'PRICE'
-    | 'QUANTITY'
-    | 'VALUE';
+  | 'STORE_NAME'
+  | 'PRODUCT_NAME'
+  | 'CATEGORY'
+  | 'PRICE'
+  | 'QUANTITY'
+  | 'VALUE';
   direction?: 'ASC' | 'DESC';
 };
 
@@ -61,7 +61,7 @@ export interface IInventoryRepository {
 }
 
 export class InventoryRepository implements IInventoryRepository {
-  constructor(private readonly em: SqlEntityManager) {}
+  constructor(private readonly em: SqlEntityManager) { }
 
   async listInventoryItems(
     filter: InventoryItemFilter,
@@ -79,7 +79,10 @@ export class InventoryRepository implements IInventoryRepository {
       .leftJoinAndSelect('ii.store', 's');
 
     if (filter.storeId) qb.andWhere({ store: filter.storeId });
-    if (filter.category) qb.andWhere({ 'p.category': filter.category });
+    if (filter.category) {
+      const like = `%${filter.category}%`;
+      qb.andWhere({ 'p.category': { $ilike: like } });
+    }
     if (filter.minQuantity != null)
       qb.andWhere({ quantity: { $gte: filter.minQuantity } });
     if (filter.maxQuantity != null)
