@@ -78,9 +78,11 @@ export function createDbProvider(): {
       if (!enabled) return;
       const o = await ensureOrm();
       // Clean tables between tests. This assumes the migration has created these tables.
-      await o.em.getConnection().execute(
-        'truncate table "inventory_item", "product", "store" restart identity cascade;',
-      );
+      await o.em
+        .getConnection()
+        .execute(
+          'truncate table "inventory_item", "product", "store" restart identity cascade;',
+        );
     },
     async close() {
       if (orm) await orm.close(true);
@@ -110,7 +112,10 @@ function getDbFileLock(): Mutex {
         try {
           await fs.writeFile(
             lockPath,
-            JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }),
+            JSON.stringify({
+              pid: process.pid,
+              startedAt: new Date().toISOString(),
+            }),
             { flag: 'wx' },
           );
           // acquired
@@ -136,7 +141,9 @@ function getDbFileLock(): Mutex {
           // Backoff with jitter.
           const waited = Date.now() - started;
           if (waited > 60_000) {
-            throw new Error(`Timed out waiting for DB contract lock at ${lockPath}`);
+            throw new Error(
+              `Timed out waiting for DB contract lock at ${lockPath}`,
+            );
           }
           await sleep(25 + Math.floor(Math.random() * 50));
         }
@@ -194,5 +201,3 @@ export function withProviders(
     });
   }
 }
-
-

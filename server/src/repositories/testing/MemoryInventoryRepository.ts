@@ -63,12 +63,16 @@ export class MemoryInventoryRepository implements IInventoryRepository {
       if (!sort) return stableCmp(a, b);
 
       let cmp = 0;
-      if (sort.field === 'STORE_NAME') cmp = a.store.name.localeCompare(b.store.name);
-      else if (sort.field === 'PRODUCT_NAME') cmp = a.product.name.localeCompare(b.product.name);
-      else if (sort.field === 'CATEGORY') cmp = a.product.category.localeCompare(b.product.category);
+      if (sort.field === 'STORE_NAME')
+        cmp = a.store.name.localeCompare(b.store.name);
+      else if (sort.field === 'PRODUCT_NAME')
+        cmp = a.product.name.localeCompare(b.product.name);
+      else if (sort.field === 'CATEGORY')
+        cmp = a.product.category.localeCompare(b.product.category);
       else if (sort.field === 'PRICE') cmp = Number(a.price) - Number(b.price);
       else if (sort.field === 'QUANTITY') cmp = a.quantity - b.quantity;
-      else if (sort.field === 'VALUE') cmp = Number(a.price) * a.quantity - Number(b.price) * b.quantity;
+      else if (sort.field === 'VALUE')
+        cmp = Number(a.price) * a.quantity - Number(b.price) * b.quantity;
       else cmp = stableCmp(a, b);
 
       if (cmp !== 0) return cmp * dir;
@@ -81,7 +85,10 @@ export class MemoryInventoryRepository implements IInventoryRepository {
     return { items, total, page: safePage, pageSize: safePageSize };
   }
 
-  async deleteInventoryItem(input: { storeId: string; productId: string }): Promise<boolean> {
+  async deleteInventoryItem(input: {
+    storeId: string;
+    productId: string;
+  }): Promise<boolean> {
     const key = `${input.storeId}:${input.productId}`;
     return this.db.inventoryByStoreProduct.delete(key);
   }

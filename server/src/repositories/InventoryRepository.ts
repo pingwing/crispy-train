@@ -20,12 +20,12 @@ export type InventoryItemFilter = {
 
 export type InventoryItemSort = {
   field:
-  | 'STORE_NAME'
-  | 'PRODUCT_NAME'
-  | 'CATEGORY'
-  | 'PRICE'
-  | 'QUANTITY'
-  | 'VALUE';
+    | 'STORE_NAME'
+    | 'PRODUCT_NAME'
+    | 'CATEGORY'
+    | 'PRICE'
+    | 'QUANTITY'
+    | 'VALUE';
   direction?: 'ASC' | 'DESC';
 };
 
@@ -51,7 +51,10 @@ export interface IInventoryRepository {
     pageSize: number,
     sort?: InventoryItemSort,
   ): Promise<Paged<InventoryItem>>;
-  deleteInventoryItem(input: { storeId: string; productId: string }): Promise<boolean>;
+  deleteInventoryItem(input: {
+    storeId: string;
+    productId: string;
+  }): Promise<boolean>;
   upsertInventoryItem(input: {
     storeId: string;
     productId: string;
@@ -62,13 +65,16 @@ export interface IInventoryRepository {
 }
 
 export class InventoryRepository implements IInventoryRepository {
-  constructor(private readonly em: SqlEntityManager) { }
+  constructor(private readonly em: SqlEntityManager) {}
 
-  async deleteInventoryItem(input: { storeId: string; productId: string }): Promise<boolean> {
-    const deleted = await this.em.nativeDelete(
-      InventoryItemEntity,
-      { store: input.storeId, product: input.productId } as any,
-    );
+  async deleteInventoryItem(input: {
+    storeId: string;
+    productId: string;
+  }): Promise<boolean> {
+    const deleted = await this.em.nativeDelete(InventoryItemEntity, {
+      store: input.storeId,
+      product: input.productId,
+    } as any);
     return deleted > 0;
   }
 
@@ -109,7 +115,11 @@ export class InventoryRepository implements IInventoryRepository {
 
     const dir = (sort?.direction ?? 'ASC') === 'DESC' ? 'desc' : 'asc';
     // Always include a stable tie-breaker so pagination is deterministic.
-    const stable = { 's.name': 'asc', 'p.name': 'asc', 'ii.id': 'asc' } as const;
+    const stable = {
+      's.name': 'asc',
+      'p.name': 'asc',
+      'ii.id': 'asc',
+    } as const;
 
     if (!sort) {
       qb.orderBy(stable);
@@ -118,14 +128,22 @@ export class InventoryRepository implements IInventoryRepository {
     } else if (sort.field === 'PRODUCT_NAME') {
       qb.orderBy({ 'p.name': dir, 's.name': 'asc', 'ii.id': 'asc' });
     } else if (sort.field === 'CATEGORY') {
-      qb.orderBy({ 'p.category': dir, 'p.name': 'asc', 's.name': 'asc', 'ii.id': 'asc' });
+      qb.orderBy({
+        'p.category': dir,
+        'p.name': 'asc',
+        's.name': 'asc',
+        'ii.id': 'asc',
+      });
     } else if (sort.field === 'PRICE') {
       qb.orderBy({ 'ii.price': dir, ...stable } as any);
     } else if (sort.field === 'QUANTITY') {
       qb.orderBy({ 'ii.quantity': dir, ...stable } as any);
     } else if (sort.field === 'VALUE') {
       // price is stored as numeric, so quantity * price works as numeric in Postgres.
-      qb.orderBy({ [raw('(ii.quantity * ii.price)') as any]: dir, ...stable } as any);
+      qb.orderBy({
+        [raw('(ii.quantity * ii.price)') as any]: dir,
+        ...stable,
+      } as any);
     } else {
       qb.orderBy(stable);
     }

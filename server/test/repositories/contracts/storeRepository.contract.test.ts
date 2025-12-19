@@ -7,7 +7,10 @@ withProviders((providerName, getProvider) => {
   describe(`StoreRepository contract (${providerName})`, () => {
     it('create + getById returns created store', async () => {
       const { stores } = await getProvider();
-      const created = await stores.create({ name: 'Alpha', location: 'Warsaw' });
+      const created = await stores.create({
+        name: 'Alpha',
+        location: 'Warsaw',
+      });
       const fetched = await stores.getById(created.id);
       assert.ok(fetched);
       assert.equal(fetched?.id, created.id);
@@ -21,28 +24,39 @@ withProviders((providerName, getProvider) => {
       await stores.create({ name: 'Alpha' });
       await stores.create({ name: 'Mike' });
       const list = await stores.list();
-      assert.deepEqual(list.map((s) => s.name), ['Alpha', 'Mike', 'Zulu']);
+      assert.deepEqual(
+        list.map((s) => s.name),
+        ['Alpha', 'Mike', 'Zulu'],
+      );
     });
 
     it('create enforces unique store name', async () => {
       const { stores } = await getProvider();
       await stores.create({ name: 'Dup' });
-      await assert.rejects(() => stores.create({ name: 'Dup' }), (e: any) => {
-        assert.ok(e instanceof ValidationError);
-        return true;
-      });
+      await assert.rejects(
+        () => stores.create({ name: 'Dup' }),
+        (e: any) => {
+          assert.ok(e instanceof ValidationError);
+          return true;
+        },
+      );
     });
 
     it('update returns null for unknown store', async () => {
       const { stores } = await getProvider();
-      const res = await stores.update('00000000-0000-0000-0000-000000000000', { name: 'X' });
+      const res = await stores.update('00000000-0000-0000-0000-000000000000', {
+        name: 'X',
+      });
       assert.equal(res, null);
     });
 
     it('update can change name and location', async () => {
       const { stores } = await getProvider();
       const s = await stores.create({ name: 'Old', location: 'A' });
-      const updated = await stores.update(s.id, { name: 'New', location: null });
+      const updated = await stores.update(s.id, {
+        name: 'New',
+        location: null,
+      });
       assert.ok(updated);
       assert.equal(updated?.name, 'New');
       assert.equal(updated?.location, undefined);
@@ -52,10 +66,13 @@ withProviders((providerName, getProvider) => {
       const { stores } = await getProvider();
       const a = await stores.create({ name: 'A' });
       const b = await stores.create({ name: 'B' });
-      await assert.rejects(() => stores.update(b.id, { name: a.name }), (e: any) => {
-        assert.ok(e instanceof ValidationError);
-        return true;
-      });
+      await assert.rejects(
+        () => stores.update(b.id, { name: a.name }),
+        (e: any) => {
+          assert.ok(e instanceof ValidationError);
+          return true;
+        },
+      );
     });
 
     it('listInventoryItems returns items sorted by product name asc', async () => {
@@ -64,13 +81,24 @@ withProviders((providerName, getProvider) => {
       const p1 = await products.create({ name: 'Banana', category: 'Fruit' });
       const p2 = await products.create({ name: 'Apple', category: 'Fruit' });
 
-      await inventory.upsertInventoryItem({ storeId: s.id, productId: p1.id, price: '1.00', quantity: 1 });
-      await inventory.upsertInventoryItem({ storeId: s.id, productId: p2.id, price: '1.00', quantity: 1 });
+      await inventory.upsertInventoryItem({
+        storeId: s.id,
+        productId: p1.id,
+        price: '1.00',
+        quantity: 1,
+      });
+      await inventory.upsertInventoryItem({
+        storeId: s.id,
+        productId: p2.id,
+        price: '1.00',
+        quantity: 1,
+      });
 
       const items = await stores.listInventoryItems(s.id);
-      assert.deepEqual(items.map((ii) => ii.product.name), ['Apple', 'Banana']);
+      assert.deepEqual(
+        items.map((ii) => ii.product.name),
+        ['Apple', 'Banana'],
+      );
     });
   });
 });
-
-
