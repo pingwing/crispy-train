@@ -7,7 +7,7 @@ export function AppLayout() {
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
           <h2 style={{ margin: 0 }}>Tiny Inventory</h2>
-          <span style={{ color: '#666' }}>Knostic home assignment</span>
+          <span style={{ color: '#666' }}>Home assignment</span>
         </div>
         <nav style={{ display: 'flex', gap: 12 }}>
           <Link to="/" aria-current={location.pathname === '/' ? 'page' : undefined}>
