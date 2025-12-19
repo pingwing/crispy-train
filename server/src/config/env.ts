@@ -10,9 +10,9 @@ const EnvSchema = z.object({
 
   DB_HOST: z.string().optional().default('localhost'),
   DB_PORT: z.coerce.number().int().positive().optional().default(5432),
-  DB_NAME: z.string().optional().default('knostic_shop'),
-  DB_USER: z.string().optional().default('knostic'),
-  DB_PASSWORD: z.string().optional().default('knostic'),
+  DB_NAME: z.string().optional().default('always_open_shop'),
+  DB_USER: z.string().optional().default('secretUser'),
+  DB_PASSWORD: z.string().optional().default('secretPassword'),
 });
 
 export const env = EnvSchema.parse(process.env);

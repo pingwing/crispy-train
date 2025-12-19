@@ -2,15 +2,17 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: knostic_shop
-      POSTGRES_USER: knostic
-      POSTGRES_PASSWORD: knostic
+      # Keep these in sync with the `server` service below (or override via a local `.env`)
+      POSTGRES_DB: ${DB_NAME:-always_open_shop}
+      POSTGRES_USER: ${DB_USER:-secretUser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secretPassword}
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U knostic -d knostic_shop"]
+      # Use container env so overrides stay consistent.
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -21,11 +23,11 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4000
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: knostic_shop
-      DB_USER: knostic
-      DB_PASSWORD: knostic
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-always_open_shop}
+      DB_USER: ${DB_USER:-secretUser}
+      DB_PASSWORD: ${DB_PASSWORD:-secretPassword}
     ports:
       - "4001:4000"
     depends_on:
