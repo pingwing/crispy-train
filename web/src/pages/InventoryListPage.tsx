@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
-import { useInventoryItemsQuery, useStoresQuery } from '../graphql/generated/urql';
+import { useInventoryItemsQuery, useStoresQuery, type InventoryItemFilterInput } from '../graphql/generated/urql';
 
 export function InventoryListPage() {
   const [page, setPage] = useState(1);
@@ -17,20 +17,34 @@ export function InventoryListPage() {
 
   const [{ data: storesData, fetching: storesFetching, error: storesError }] = useStoresQuery();
 
-  const filter = useMemo(() => {
-    const f: Record<string, unknown> = {};
+  const filter = useMemo<InventoryItemFilterInput | undefined>(() => {
+    const f: InventoryItemFilterInput = {};
+
     if (storeId) f.storeId = storeId;
-    if (category.trim()) f.category = category.trim();
-    if (search.trim()) f.search = search.trim();
-    if (minPrice.trim()) f.minPrice = minPrice.trim();
-    if (maxPrice.trim()) f.maxPrice = maxPrice.trim();
-    if (minQuantity.trim()) f.minQuantity = Number(minQuantity);
-    if (maxQuantity.trim()) f.maxQuantity = Number(maxQuantity);
-    return f;
+
+    const trimmedCategory = category.trim();
+    if (trimmedCategory) f.category = trimmedCategory;
+
+    const trimmedSearch = search.trim();
+    if (trimmedSearch) f.search = trimmedSearch;
+
+    const trimmedMinPrice = minPrice.trim();
+    if (trimmedMinPrice) f.minPrice = trimmedMinPrice;
+
+    const trimmedMaxPrice = maxPrice.trim();
+    if (trimmedMaxPrice) f.maxPrice = trimmedMaxPrice;
+
+    const trimmedMinQuantity = minQuantity.trim();
+    if (trimmedMinQuantity) f.minQuantity = Number(trimmedMinQuantity);
+
+    const trimmedMaxQuantity = maxQuantity.trim();
+    if (trimmedMaxQuantity) f.maxQuantity = Number(trimmedMaxQuantity);
+
+    return Object.keys(f).length > 0 ? f : undefined;
   }, [storeId, category, search, minPrice, maxPrice, minQuantity, maxQuantity]);
 
   const [{ data, fetching, error }] = useInventoryItemsQuery({
-    variables: { filter: filter as any, page, pageSize },
+    variables: { filter, page, pageSize },
   });
 
   const items = data?.inventoryItems?.items ?? [];
