@@ -2,6 +2,7 @@ import { asMoneyString, InventoryItem } from '../../domain';
 import type {
   IInventoryRepository,
   InventoryItemFilter,
+  InventoryItemSort,
   Paged,
   StoreInventorySummary,
 } from '../InventoryRepository';
@@ -15,6 +16,7 @@ export class MemoryInventoryRepository implements IInventoryRepository {
     filter: InventoryItemFilter,
     page: number,
     pageSize: number,
+    sort?: InventoryItemSort,
   ): Promise<Paged<InventoryItem>> {
     const safePage = Math.max(1, page);
     const safePageSize = Math.min(100, Math.max(1, pageSize));
@@ -24,8 +26,10 @@ export class MemoryInventoryRepository implements IInventoryRepository {
 
     const filtered = rows.filter((ii) => {
       if (filter.storeId && ii.store.id !== filter.storeId) return false;
-      if (filter.category && ii.product.category !== filter.category)
-        return false;
+      if (filter.category) {
+        const q = filter.category.toLowerCase();
+        if (!ii.product.category.toLowerCase().includes(q)) return false;
+      }
       if (filter.minQuantity != null && ii.quantity < filter.minQuantity)
         return false;
       if (filter.maxQuantity != null && ii.quantity > filter.maxQuantity)
@@ -46,10 +50,29 @@ export class MemoryInventoryRepository implements IInventoryRepository {
       return true;
     });
 
-    filtered.sort((a, b) => {
+    const dir = (sort?.direction ?? 'ASC') === 'DESC' ? -1 : 1;
+    const stableCmp = (a: InventoryItem, b: InventoryItem) => {
       const s = a.store.name.localeCompare(b.store.name);
       if (s !== 0) return s;
-      return a.product.name.localeCompare(b.product.name);
+      const p = a.product.name.localeCompare(b.product.name);
+      if (p !== 0) return p;
+      return a.id.localeCompare(b.id);
+    };
+
+    filtered.sort((a, b) => {
+      if (!sort) return stableCmp(a, b);
+
+      let cmp = 0;
+      if (sort.field === 'STORE_NAME') cmp = a.store.name.localeCompare(b.store.name);
+      else if (sort.field === 'PRODUCT_NAME') cmp = a.product.name.localeCompare(b.product.name);
+      else if (sort.field === 'CATEGORY') cmp = a.product.category.localeCompare(b.product.category);
+      else if (sort.field === 'PRICE') cmp = Number(a.price) - Number(b.price);
+      else if (sort.field === 'QUANTITY') cmp = a.quantity - b.quantity;
+      else if (sort.field === 'VALUE') cmp = Number(a.price) * a.quantity - Number(b.price) * b.quantity;
+      else cmp = stableCmp(a, b);
+
+      if (cmp !== 0) return cmp * dir;
+      return stableCmp(a, b);
     });
 
     const total = filtered.length;

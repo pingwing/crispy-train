@@ -31,12 +31,12 @@ export class InventoryItem {
   @Property({ type: 'numeric', precision: 12, scale: 2 })
   price!: string;
 
-  @Property()
+  @Property({ type: 'int' })
   quantity!: number;
 
-  @Property({ onCreate: () => new Date() })
+  @Property({ type: 'timestamptz', onCreate: () => new Date() })
   createdAt: Date = new Date();
 
-  @Property({ onUpdate: () => new Date() })
+  @Property({ type: 'timestamptz', onUpdate: () => new Date() })
   updatedAt: Date = new Date();
 }
