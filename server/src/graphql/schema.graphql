@@ -6,6 +6,7 @@ type Query {
   store(id: ID!): Store
   inventoryItems(
     filter: InventoryItemFilterInput
+    sort: InventoryItemSortInput
     page: Int = 1
     pageSize: Int = 20
   ): InventoryItemPage!
@@ -85,6 +86,25 @@ input InventoryItemFilterInput {
   maxPrice: String
   minQuantity: Int
   maxQuantity: Int
+}
+
+enum SortDirection {
+  ASC
+  DESC
+}
+
+enum InventoryItemSortField {
+  STORE_NAME
+  PRODUCT_NAME
+  CATEGORY
+  PRICE
+  QUANTITY
+  VALUE
+}
+
+input InventoryItemSortInput {
+  field: InventoryItemSortField!
+  direction: SortDirection = ASC
 }
 
 type PageInfo {

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type {
   IInventoryRepository,
   InventoryItemFilter,
+  InventoryItemSort,
 } from '../repositories/InventoryRepository';
 import type { IStoreRepository } from '../repositories/StoreRepository';
 import type { IProductRepository } from '../repositories/ProductRepository';
@@ -24,13 +25,14 @@ export class InventoryService {
 
   async listInventoryItems(args: {
     filter?: InventoryItemFilter;
+    sort?: InventoryItemSort;
     page?: number;
     pageSize?: number;
   }) {
     const page = Math.max(1, args.page ?? 1);
     const pageSize = Math.min(100, Math.max(1, args.pageSize ?? 20));
     const filter = args.filter ?? {};
-    return this.inventory.listInventoryItems(filter, page, pageSize);
+    return this.inventory.listInventoryItems(filter, page, pageSize, args.sort);
   }
 
   async getStoreInventorySummary(storeId: string) {

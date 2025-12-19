@@ -46,6 +46,19 @@ export type InventoryItemPage = {
   pageInfo: PageInfo;
 };
 
+export type InventoryItemSortField =
+  | 'CATEGORY'
+  | 'PRICE'
+  | 'PRODUCT_NAME'
+  | 'QUANTITY'
+  | 'STORE_NAME'
+  | 'VALUE';
+
+export type InventoryItemSortInput = {
+  direction?: InputMaybe<SortDirection>;
+  field: InventoryItemSortField;
+};
+
 export type InventoryItemUpsertInput = {
   price: Scalars['String']['input'];
   productId: Scalars['ID']['input'];
@@ -129,6 +142,7 @@ export type QueryInventoryItemsArgs = {
   filter?: InputMaybe<InventoryItemFilterInput>;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<InventoryItemSortInput>;
 };
 
 
@@ -140,6 +154,10 @@ export type QueryStoreArgs = {
 export type QueryStoreInventorySummaryArgs = {
   storeId: Scalars['ID']['input'];
 };
+
+export type SortDirection =
+  | 'ASC'
+  | 'DESC';
 
 export type Store = {
   __typename?: 'Store';
@@ -177,6 +195,7 @@ export type StoresQuery = { __typename?: 'Query', stores: Array<{ __typename?: '
 
 export type InventoryItemsQueryVariables = Exact<{
   filter?: InputMaybe<InventoryItemFilterInput>;
+  sort?: InputMaybe<InventoryItemSortInput>;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
 }>;
@@ -198,6 +217,28 @@ export type UpsertInventoryItemMutationVariables = Exact<{
 
 export type UpsertInventoryItemMutation = { __typename?: 'Mutation', upsertInventoryItem: { __typename?: 'InventoryItem', id: string, price: string, quantity: number, inventoryValue: string, product: { __typename?: 'Product', id: string, name: string, category: string }, store: { __typename?: 'Store', id: string, name: string } } };
 
+export type CreateProductMutationVariables = Exact<{
+  input: ProductCreateInput;
+}>;
+
+
+export type CreateProductMutation = { __typename?: 'Mutation', createProduct: { __typename?: 'Product', id: string, name: string, category: string } };
+
+export type CreateStoreMutationVariables = Exact<{
+  input: StoreCreateInput;
+}>;
+
+
+export type CreateStoreMutation = { __typename?: 'Mutation', createStore: { __typename?: 'Store', id: string, name: string, location?: string | null } };
+
+export type UpdateStoreMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: StoreUpdateInput;
+}>;
+
+
+export type UpdateStoreMutation = { __typename?: 'Mutation', updateStore: { __typename?: 'Store', id: string, name: string, location?: string | null } };
+
 
 export const StoresDocument = gql`
     query Stores {
@@ -213,8 +254,8 @@ export function useStoresQuery(options?: Omit<Urql.UseQueryArgs<StoresQueryVaria
   return Urql.useQuery<StoresQuery, StoresQueryVariables>({ query: StoresDocument, ...options });
 };
 export const InventoryItemsDocument = gql`
-    query InventoryItems($filter: InventoryItemFilterInput, $page: Int, $pageSize: Int) {
-  inventoryItems(filter: $filter, page: $page, pageSize: $pageSize) {
+    query InventoryItems($filter: InventoryItemFilterInput, $sort: InventoryItemSortInput, $page: Int, $pageSize: Int) {
+  inventoryItems(filter: $filter, sort: $sort, page: $page, pageSize: $pageSize) {
     pageInfo {
       page
       pageSize
@@ -294,4 +335,43 @@ export const UpsertInventoryItemDocument = gql`
 
 export function useUpsertInventoryItemMutation() {
   return Urql.useMutation<UpsertInventoryItemMutation, UpsertInventoryItemMutationVariables>(UpsertInventoryItemDocument);
+};
+export const CreateProductDocument = gql`
+    mutation CreateProduct($input: ProductCreateInput!) {
+  createProduct(input: $input) {
+    id
+    name
+    category
+  }
+}
+    `;
+
+export function useCreateProductMutation() {
+  return Urql.useMutation<CreateProductMutation, CreateProductMutationVariables>(CreateProductDocument);
+};
+export const CreateStoreDocument = gql`
+    mutation CreateStore($input: StoreCreateInput!) {
+  createStore(input: $input) {
+    id
+    name
+    location
+  }
+}
+    `;
+
+export function useCreateStoreMutation() {
+  return Urql.useMutation<CreateStoreMutation, CreateStoreMutationVariables>(CreateStoreDocument);
+};
+export const UpdateStoreDocument = gql`
+    mutation UpdateStore($id: ID!, $input: StoreUpdateInput!) {
+  updateStore(id: $id, input: $input) {
+    id
+    name
+    location
+  }
+}
+    `;
+
+export function useUpdateStoreMutation() {
+  return Urql.useMutation<UpdateStoreMutation, UpdateStoreMutationVariables>(UpdateStoreDocument);
 };

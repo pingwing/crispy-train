@@ -6,8 +6,8 @@ query Stores {
   }
 }
 
-query InventoryItems($filter: InventoryItemFilterInput, $page: Int, $pageSize: Int) {
-  inventoryItems(filter: $filter, page: $page, pageSize: $pageSize) {
+query InventoryItems($filter: InventoryItemFilterInput, $sort: InventoryItemSortInput, $page: Int, $pageSize: Int) {
+  inventoryItems(filter: $filter, sort: $sort, page: $page, pageSize: $pageSize) {
     pageInfo {
       page
       pageSize
@@ -71,6 +71,30 @@ mutation UpsertInventoryItem($input: InventoryItemUpsertInput!) {
       id
       name
     }
+  }
+}
+
+mutation CreateProduct($input: ProductCreateInput!) {
+  createProduct(input: $input) {
+    id
+    name
+    category
+  }
+}
+
+mutation CreateStore($input: StoreCreateInput!) {
+  createStore(input: $input) {
+    id
+    name
+    location
+  }
+}
+
+mutation UpdateStore($id: ID!, $input: StoreUpdateInput!) {
+  updateStore(id: $id, input: $input) {
+    id
+    name
+    location
   }
 }
 

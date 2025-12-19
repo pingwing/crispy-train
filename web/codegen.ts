@@ -10,6 +10,7 @@ const config: CodegenConfig = {
   documents: ['src/**/*.{ts,tsx,graphql}'],
   config: {
     useTypeImports: true,
+    enumsAsTypes: true,
   },
   generates: {
     'src/graphql/generated/': {
@@ -26,6 +27,7 @@ const config: CodegenConfig = {
         withHooks: true,
         reactHooksVersion: 18,
         gqlImport: 'urql#gql',
+        enumsAsTypes: true,
       },
     },
   },

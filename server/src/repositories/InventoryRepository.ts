@@ -18,6 +18,17 @@ export type InventoryItemFilter = {
   maxQuantity?: number;
 };
 
+export type InventoryItemSort = {
+  field:
+    | 'STORE_NAME'
+    | 'PRODUCT_NAME'
+    | 'CATEGORY'
+    | 'PRICE'
+    | 'QUANTITY'
+    | 'VALUE';
+  direction?: 'ASC' | 'DESC';
+};
+
 export type Paged<T> = {
   items: T[];
   total: number;
@@ -38,6 +49,7 @@ export interface IInventoryRepository {
     filter: InventoryItemFilter,
     page: number,
     pageSize: number,
+    sort?: InventoryItemSort,
   ): Promise<Paged<InventoryItem>>;
   upsertInventoryItem(input: {
     storeId: string;
@@ -55,6 +67,7 @@ export class InventoryRepository implements IInventoryRepository {
     filter: InventoryItemFilter,
     page: number,
     pageSize: number,
+    sort?: InventoryItemSort,
   ): Promise<Paged<InventoryItem>> {
     const safePage = Math.max(1, page);
     const safePageSize = Math.min(100, Math.max(1, pageSize));
@@ -82,7 +95,28 @@ export class InventoryRepository implements IInventoryRepository {
     if (filter.maxPrice != null)
       qb.andWhere({ price: { $lte: filter.maxPrice } });
 
-    qb.orderBy({ 's.name': 'asc', 'p.name': 'asc' });
+    const dir = (sort?.direction ?? 'ASC') === 'DESC' ? 'desc' : 'asc';
+    // Always include a stable tie-breaker so pagination is deterministic.
+    const stable = { 's.name': 'asc', 'p.name': 'asc', 'ii.id': 'asc' } as const;
+
+    if (!sort) {
+      qb.orderBy(stable);
+    } else if (sort.field === 'STORE_NAME') {
+      qb.orderBy({ 's.name': dir, 'p.name': 'asc', 'ii.id': 'asc' });
+    } else if (sort.field === 'PRODUCT_NAME') {
+      qb.orderBy({ 'p.name': dir, 's.name': 'asc', 'ii.id': 'asc' });
+    } else if (sort.field === 'CATEGORY') {
+      qb.orderBy({ 'p.category': dir, 'p.name': 'asc', 's.name': 'asc', 'ii.id': 'asc' });
+    } else if (sort.field === 'PRICE') {
+      qb.orderBy({ 'ii.price': dir, ...stable } as any);
+    } else if (sort.field === 'QUANTITY') {
+      qb.orderBy({ 'ii.quantity': dir, ...stable } as any);
+    } else if (sort.field === 'VALUE') {
+      // price is stored as numeric, so quantity * price works as numeric in Postgres.
+      qb.orderBy({ [raw('(ii.quantity * ii.price)') as any]: dir, ...stable } as any);
+    } else {
+      qb.orderBy(stable);
+    }
     qb.offset(offset).limit(safePageSize);
 
     const [entities, total] = await qb.getResultAndCount();

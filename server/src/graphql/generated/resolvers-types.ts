@@ -48,6 +48,20 @@ export type InventoryItemPage = {
   pageInfo: PageInfo;
 };
 
+export enum InventoryItemSortField {
+  Category = 'CATEGORY',
+  Price = 'PRICE',
+  ProductName = 'PRODUCT_NAME',
+  Quantity = 'QUANTITY',
+  StoreName = 'STORE_NAME',
+  Value = 'VALUE'
+}
+
+export type InventoryItemSortInput = {
+  direction?: InputMaybe<SortDirection>;
+  field: InventoryItemSortField;
+};
+
 export type InventoryItemUpsertInput = {
   price: Scalars['String']['input'];
   productId: Scalars['ID']['input'];
@@ -131,6 +145,7 @@ export type QueryInventoryItemsArgs = {
   filter?: InputMaybe<InventoryItemFilterInput>;
   page?: InputMaybe<Scalars['Int']['input']>;
   pageSize?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<InventoryItemSortInput>;
 };
 
 
@@ -142,6 +157,11 @@ export type QueryStoreArgs = {
 export type QueryStoreInventorySummaryArgs = {
   storeId: Scalars['ID']['input'];
 };
+
+export enum SortDirection {
+  Asc = 'ASC',
+  Desc = 'DESC'
+}
 
 export type Store = {
   __typename?: 'Store';
@@ -252,6 +272,8 @@ export type ResolversTypes = {
   InventoryItem: ResolverTypeWrapper<InventoryItemDomain>;
   InventoryItemFilterInput: InventoryItemFilterInput;
   InventoryItemPage: ResolverTypeWrapper<Omit<InventoryItemPage, 'items'> & { items: Array<ResolversTypes['InventoryItem']> }>;
+  InventoryItemSortField: InventoryItemSortField;
+  InventoryItemSortInput: InventoryItemSortInput;
   InventoryItemUpsertInput: InventoryItemUpsertInput;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PageInfo: ResolverTypeWrapper<PageInfo>;
@@ -259,6 +281,7 @@ export type ResolversTypes = {
   ProductCreateInput: ProductCreateInput;
   ProductUpdateInput: ProductUpdateInput;
   Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
+  SortDirection: SortDirection;
   Store: ResolverTypeWrapper<StoreDomain>;
   StoreCreateInput: StoreCreateInput;
   StoreInventorySummary: ResolverTypeWrapper<Omit<StoreInventorySummary, 'store'> & { store: ResolversTypes['Store'] }>;
@@ -275,6 +298,7 @@ export type ResolversParentTypes = {
   InventoryItem: InventoryItemDomain;
   InventoryItemFilterInput: InventoryItemFilterInput;
   InventoryItemPage: Omit<InventoryItemPage, 'items'> & { items: Array<ResolversParentTypes['InventoryItem']> };
+  InventoryItemSortInput: InventoryItemSortInput;
   InventoryItemUpsertInput: InventoryItemUpsertInput;
   Mutation: Record<PropertyKey, never>;
   PageInfo: PageInfo;

@@ -32,6 +32,7 @@ export const resolvers: Resolvers = {
     inventoryItems: async (_p, args, ctx) => {
       const result = await ctx.services.inventoryService.listInventoryItems({
         filter: (args.filter ?? undefined) as any,
+        sort: (args.sort ?? undefined) as any,
         page: args.page ?? undefined,
         pageSize: args.pageSize ?? undefined,
       });
