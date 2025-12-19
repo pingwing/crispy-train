@@ -51,7 +51,8 @@ export function createDbProvider(): {
   close: () => Promise<void>;
 } {
   const enabled = process.env.REPO_CONTRACT_DB === '1';
-  const allowDestructive = process.env.REPO_CONTRACT_DB_ALLOW_DESTRUCTIVE === '1';
+  const allowDestructive =
+    process.env.REPO_CONTRACT_DB_ALLOW_DESTRUCTIVE === '1';
   let orm: Awaited<ReturnType<typeof initOrm>> | null = null;
 
   async function ensureOrm() {
@@ -70,8 +71,8 @@ export function createDbProvider(): {
       const msg =
         `Refusing to run DB-backed repo contract tests against database "${dbName}". ` +
         `These tests TRUNCATE tables. Use a dedicated test DB (recommended: name ending with "_test") ` +
-        `set the contract DB by exporting DB_NAME=always_open_shop_test.`;
-        `or set REPO_CONTRACT_DB_ALLOW_DESTRUCTIVE=1 to override.`;
+        `Set the contract DB by exporting DB_NAME=always_open_shop_test. ` +
+        `Or set REPO_CONTRACT_DB_ALLOW_DESTRUCTIVE=1 to override.`;
       await orm.close(true);
       orm = null;
       throw new Error(msg);
@@ -182,7 +183,7 @@ export function withProviders(
   const memory = createMemoryProvider();
   const db = createDbProvider();
 
-  describe(memory.name, () => {
+  describe(`Contract tests (${memory.name} provider)`, () => {
     beforeEach(async () => {
       await memory.reset();
     });
