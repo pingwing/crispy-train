@@ -171,7 +171,9 @@ export const resolvers: Resolvers = {
 
     upsertInventoryItem: async (_p, args, ctx) => {
       try {
-        return await ctx.services.inventoryService.upsertInventoryItem(args.input);
+        return await ctx.services.inventoryService.upsertInventoryItem(
+          args.input,
+        );
       } catch (e) {
         throw toGraphQLError(e);
       }
