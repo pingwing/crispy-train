@@ -209,7 +209,10 @@ describe('InventoryService (mocked repositories)', () => {
     const getEntityById = createAsyncSpy(async () => null);
     const service = new InventoryService(
       {} as IStoreRepository,
-      { getEntityById, update: async () => null } as unknown as IProductRepository,
+      {
+        getEntityById,
+        update: async () => null,
+      } as unknown as IProductRepository,
       {} as IInventoryRepository,
     );
 

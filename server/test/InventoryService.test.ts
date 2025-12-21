@@ -95,8 +95,14 @@ test('InventoryService prevents renaming a product to a name that would conflict
 
   const s1 = await inventoryService.createStore({ name: 'S1', location: null });
 
-  const p1 = await inventoryService.createProduct({ name: 'Cola', category: 'Drinks' });
-  const p2 = await inventoryService.createProduct({ name: 'Water', category: 'Drinks' });
+  const p1 = await inventoryService.createProduct({
+    name: 'Cola',
+    category: 'Drinks',
+  });
+  const p2 = await inventoryService.createProduct({
+    name: 'Water',
+    category: 'Drinks',
+  });
 
   await inventoryService.upsertInventoryItem({
     storeId: s1.id,

@@ -153,8 +153,8 @@ export class InventoryService {
 
     if (parsed.name && parsed.name !== existing.name) {
       const storeIds = await this.inventory.listStoreIdsForProduct(id);
-      const validStoreIds = storeIds.filter((sid) =>
-        z.string().uuid().safeParse(sid).success,
+      const validStoreIds = storeIds.filter(
+        (sid) => z.string().uuid().safeParse(sid).success,
       );
 
       for (const storeId of validStoreIds) {
@@ -164,9 +164,12 @@ export class InventoryService {
           excludeProductId: id,
         });
         if (conflict) {
-          throw new ValidationError('Product name must be unique in this store', {
-            field: 'name',
-          });
+          throw new ValidationError(
+            'Product name must be unique in this store',
+            {
+              field: 'name',
+            },
+          );
         }
       }
     }

@@ -13,5 +13,3 @@ export class Migration20251221123000 extends Migration {
     // Intentionally left blank (we do not want to re-introduce global uniqueness).
   }
 }
-
-
