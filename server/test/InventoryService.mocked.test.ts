@@ -206,10 +206,10 @@ describe('InventoryService (mocked repositories)', () => {
   });
 
   it('updateProduct throws NotFoundError when products.update returns null', async () => {
-    const update = createAsyncSpy(async () => null);
+    const getEntityById = createAsyncSpy(async () => null);
     const service = new InventoryService(
       {} as IStoreRepository,
-      { update } as unknown as IProductRepository,
+      { getEntityById, update: async () => null } as unknown as IProductRepository,
       {} as IInventoryRepository,
     );
 

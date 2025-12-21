@@ -340,22 +340,8 @@ export function InventoryListPage() {
         </div>
       </section>
 
-      {storesFetching ? null : storesError ? (
-        <ErrorState
-          title="Could not load stores"
-          details={storesError.message}
-        />
-      ) : null}
-
       {fetching ? (
         <LoadingState title="Loading inventory…" />
-      ) : error ? (
-        <ErrorState title="Could not load inventory" details={error.message} />
-      ) : items.length === 0 ? (
-        <EmptyState
-          title="No matching inventory items"
-          details="Try relaxing filters."
-        />
       ) : (
         <section
           style={{
@@ -364,156 +350,183 @@ export function InventoryListPage() {
             overflow: 'hidden',
           }}
         >
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead style={{ background: '#fafafa' }}>
-              <tr>
-                <th
-                  style={{
-                    textAlign: 'left',
-                    padding: 10,
-                    borderBottom: '1px solid #eee',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('store')}
-                    style={{ all: 'unset', cursor: 'pointer' }}
-                    title="Sort by store"
-                  >
-                    Store{sortIndicator('store')}
-                  </button>
-                </th>
-                <th
-                  style={{
-                    textAlign: 'left',
-                    padding: 10,
-                    borderBottom: '1px solid #eee',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('product')}
-                    style={{ all: 'unset', cursor: 'pointer' }}
-                    title="Sort by product"
-                  >
-                    Product{sortIndicator('product')}
-                  </button>
-                </th>
-                <th
-                  style={{
-                    textAlign: 'left',
-                    padding: 10,
-                    borderBottom: '1px solid #eee',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('category')}
-                    style={{ all: 'unset', cursor: 'pointer' }}
-                    title="Sort by category"
-                  >
-                    Category{sortIndicator('category')}
-                  </button>
-                </th>
-                <th
-                  style={{
-                    textAlign: 'right',
-                    padding: 10,
-                    borderBottom: '1px solid #eee',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('price')}
-                    style={{ all: 'unset', cursor: 'pointer' }}
-                    title="Sort by price"
-                  >
-                    Price{sortIndicator('price')}
-                  </button>
-                </th>
-                <th
-                  style={{
-                    textAlign: 'right',
-                    padding: 10,
-                    borderBottom: '1px solid #eee',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('quantity')}
-                    style={{ all: 'unset', cursor: 'pointer' }}
-                    title="Sort by quantity"
-                  >
-                    Qty{sortIndicator('quantity')}
-                  </button>
-                </th>
-                <th
-                  style={{
-                    textAlign: 'right',
-                    padding: 10,
-                    borderBottom: '1px solid #eee',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleSort('value')}
-                    style={{ all: 'unset', cursor: 'pointer' }}
-                    title="Sort by inventory value"
-                  >
-                    Value{sortIndicator('value')}
-                  </button>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it) => (
-                <tr key={it.id}>
-                  <td
-                    style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
-                  >
-                    <Link to={`/stores/${it.store.id}`}>{it.store.name}</Link>
-                  </td>
-                  <td
-                    style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
-                  >
-                    {it.product.name}
-                  </td>
-                  <td
-                    style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
-                  >
-                    {it.product.category}
-                  </td>
-                  <td
+          {storesFetching ? null : storesError ? (
+            <div style={{ padding: 12, borderBottom: '1px solid #eee' }}>
+              <ErrorState
+                title="Could not load stores"
+                details={storesError.message}
+              />
+            </div>
+          ) : null}
+
+          {error ? (
+            <div style={{ padding: 12, borderBottom: '1px solid #eee' }}>
+              <ErrorState
+                title="Could not load inventory"
+                details={error.message}
+              />
+            </div>
+          ) : null}
+
+          {items.length === 0 ? (
+            <div style={{ padding: 12 }}>
+              <EmptyState
+                title="No matching inventory items"
+                details="Try relaxing filters."
+              />
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ background: '#fafafa' }}>
+                <tr>
+                  <th
                     style={{
+                      textAlign: 'left',
                       padding: 10,
-                      borderBottom: '1px solid #f2f2f2',
-                      textAlign: 'right',
+                      borderBottom: '1px solid #eee',
                     }}
                   >
-                    {it.price}
-                  </td>
-                  <td
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('store')}
+                      style={{ all: 'unset', cursor: 'pointer' }}
+                      title="Sort by store"
+                    >
+                      Store{sortIndicator('store')}
+                    </button>
+                  </th>
+                  <th
                     style={{
+                      textAlign: 'left',
                       padding: 10,
-                      borderBottom: '1px solid #f2f2f2',
-                      textAlign: 'right',
+                      borderBottom: '1px solid #eee',
                     }}
                   >
-                    {it.quantity}
-                  </td>
-                  <td
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('product')}
+                      style={{ all: 'unset', cursor: 'pointer' }}
+                      title="Sort by product"
+                    >
+                      Product{sortIndicator('product')}
+                    </button>
+                  </th>
+                  <th
                     style={{
+                      textAlign: 'left',
                       padding: 10,
-                      borderBottom: '1px solid #f2f2f2',
-                      textAlign: 'right',
+                      borderBottom: '1px solid #eee',
                     }}
                   >
-                    {it.inventoryValue}
-                  </td>
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('category')}
+                      style={{ all: 'unset', cursor: 'pointer' }}
+                      title="Sort by category"
+                    >
+                      Category{sortIndicator('category')}
+                    </button>
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      padding: 10,
+                      borderBottom: '1px solid #eee',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('price')}
+                      style={{ all: 'unset', cursor: 'pointer' }}
+                      title="Sort by price"
+                    >
+                      Price{sortIndicator('price')}
+                    </button>
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      padding: 10,
+                      borderBottom: '1px solid #eee',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('quantity')}
+                      style={{ all: 'unset', cursor: 'pointer' }}
+                      title="Sort by quantity"
+                    >
+                      Qty{sortIndicator('quantity')}
+                    </button>
+                  </th>
+                  <th
+                    style={{
+                      textAlign: 'right',
+                      padding: 10,
+                      borderBottom: '1px solid #eee',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleSort('value')}
+                      style={{ all: 'unset', cursor: 'pointer' }}
+                      title="Sort by inventory value"
+                    >
+                      Value{sortIndicator('value')}
+                    </button>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map((it) => (
+                  <tr key={it.id}>
+                    <td
+                      style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
+                    >
+                      <Link to={`/stores/${it.store.id}`}>{it.store.name}</Link>
+                    </td>
+                    <td
+                      style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
+                    >
+                      {it.product.name}
+                    </td>
+                    <td
+                      style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
+                    >
+                      {it.product.category}
+                    </td>
+                    <td
+                      style={{
+                        padding: 10,
+                        borderBottom: '1px solid #f2f2f2',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {it.price}
+                    </td>
+                    <td
+                      style={{
+                        padding: 10,
+                        borderBottom: '1px solid #f2f2f2',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {it.quantity}
+                    </td>
+                    <td
+                      style={{
+                        padding: 10,
+                        borderBottom: '1px solid #f2f2f2',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {it.inventoryValue}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </section>
       )}
 

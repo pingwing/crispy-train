@@ -148,9 +148,32 @@ export class InventoryService {
       input,
     );
 
-    const product = await this.products.update(id, parsed);
-    if (!product) throw new NotFoundError('Product not found');
-    return product;
+    const existing = await this.products.getEntityById(id);
+    if (!existing) throw new NotFoundError('Product not found');
+
+    if (parsed.name && parsed.name !== existing.name) {
+      const storeIds = await this.inventory.listStoreIdsForProduct(id);
+      const validStoreIds = storeIds.filter((sid) =>
+        z.string().uuid().safeParse(sid).success,
+      );
+
+      for (const storeId of validStoreIds) {
+        const conflict = await this.inventory.hasProductNameConflictInStore({
+          storeId,
+          productName: parsed.name,
+          excludeProductId: id,
+        });
+        if (conflict) {
+          throw new ValidationError('Product name must be unique in this store', {
+            field: 'name',
+          });
+        }
+      }
+    }
+
+    const updated = await this.products.update(id, parsed);
+    if (!updated) throw new NotFoundError('Product not found');
+    return updated;
   }
 
   async upsertInventoryItem(input: {

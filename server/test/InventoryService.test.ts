@@ -89,3 +89,34 @@ test('InventoryService enforces product name uniqueness within a store (in-memor
     quantity: 1,
   });
 });
+
+test('InventoryService prevents renaming a product to a name that would conflict within a store', async () => {
+  const { inventoryService } = createTestServices();
+
+  const s1 = await inventoryService.createStore({ name: 'S1', location: null });
+
+  const p1 = await inventoryService.createProduct({ name: 'Cola', category: 'Drinks' });
+  const p2 = await inventoryService.createProduct({ name: 'Water', category: 'Drinks' });
+
+  await inventoryService.upsertInventoryItem({
+    storeId: s1.id,
+    productId: p1.id,
+    price: '1.00',
+    quantity: 1,
+  });
+  await inventoryService.upsertInventoryItem({
+    storeId: s1.id,
+    productId: p2.id,
+    price: '1.00',
+    quantity: 1,
+  });
+
+  await assert.rejects(
+    () => inventoryService.updateProduct(p2.id, { name: 'Cola' }),
+    (err: any) => {
+      assert.equal(err?.name, 'ValidationError');
+      assert.equal(err?.message, 'Product name must be unique in this store');
+      return true;
+    },
+  );
+});

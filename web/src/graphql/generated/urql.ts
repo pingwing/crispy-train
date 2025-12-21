@@ -245,6 +245,14 @@ export type CreateProductMutationVariables = Exact<{
 
 export type CreateProductMutation = { __typename?: 'Mutation', createProduct: { __typename?: 'Product', id: string, name: string, category: string } };
 
+export type UpdateProductMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: ProductUpdateInput;
+}>;
+
+
+export type UpdateProductMutation = { __typename?: 'Mutation', updateProduct: { __typename?: 'Product', id: string, name: string, category: string } };
+
 export type CreateStoreMutationVariables = Exact<{
   input: StoreCreateInput;
 }>;
@@ -385,6 +393,19 @@ export const CreateProductDocument = gql`
 
 export function useCreateProductMutation() {
   return Urql.useMutation<CreateProductMutation, CreateProductMutationVariables>(CreateProductDocument);
+};
+export const UpdateProductDocument = gql`
+    mutation UpdateProduct($id: ID!, $input: ProductUpdateInput!) {
+  updateProduct(id: $id, input: $input) {
+    id
+    name
+    category
+  }
+}
+    `;
+
+export function useUpdateProductMutation() {
+  return Urql.useMutation<UpdateProductMutation, UpdateProductMutationVariables>(UpdateProductDocument);
 };
 export const CreateStoreDocument = gql`
     mutation CreateStore($input: StoreCreateInput!) {

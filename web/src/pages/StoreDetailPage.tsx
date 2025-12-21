@@ -6,6 +6,7 @@ import {
   useDeleteInventoryItemMutation,
   useDeleteStoreMutation,
   useStoreDetailQuery,
+  useUpdateProductMutation,
   useUpdateStoreMutation,
   useUpsertInventoryItemMutation,
 } from '../graphql/generated/urql';
@@ -24,6 +25,8 @@ export function StoreDetailPage() {
     useUpsertInventoryItemMutation();
   const [{ fetching: creatingProductMutation }, createProduct] =
     useCreateProductMutation();
+  const [{ fetching: updatingProductMutation }, updateProduct] =
+    useUpdateProductMutation();
   const [{ fetching: updatingStoreMutation }, updateStore] =
     useUpdateStoreMutation();
   const [{ fetching: deletingMutation }, deleteInventoryItem] =
@@ -36,6 +39,8 @@ export function StoreDetailPage() {
   const items = store?.inventoryItems ?? [];
 
   const [editingId, setEditingId] = useState<string>('');
+  const [editProductName, setEditProductName] = useState<string>('');
+  const [editProductCategory, setEditProductCategory] = useState<string>('');
   const [editPrice, setEditPrice] = useState<string>('');
   const [editQty, setEditQty] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
@@ -81,6 +86,8 @@ export function StoreDetailPage() {
   async function startEdit(item: (typeof items)[number]) {
     setFormError('');
     setEditingId(item.id);
+    setEditProductName(item.product.name);
+    setEditProductCategory(item.product.category);
     setEditPrice(item.price);
     setEditQty(String(item.quantity));
   }
@@ -90,9 +97,19 @@ export function StoreDetailPage() {
     if (!current) return;
     if (!store) return;
 
+    const productName = editProductName.trim();
+    const productCategory = editProductCategory.trim();
     const price = editPrice.trim();
     const qty = Number(editQty);
 
+    if (!productName) {
+      setFormError('Product name cannot be empty.');
+      return;
+    }
+    if (!productCategory) {
+      setFormError('Product category cannot be empty.');
+      return;
+    }
     if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(price)) {
       setFormError('Price must be a decimal string like 12.34');
       return;
@@ -104,6 +121,22 @@ export function StoreDetailPage() {
 
     setSaving(true);
     try {
+      const productInput: { name?: string; category?: string } = {};
+      if (productName !== current.product.name) productInput.name = productName;
+      if (productCategory !== current.product.category)
+        productInput.category = productCategory;
+
+      if (Object.keys(productInput).length) {
+        const updated = await updateProduct({
+          id: current.product.id,
+          input: productInput,
+        });
+        if (updated.error) {
+          setFormError(updated.error.message);
+          return;
+        }
+      }
+
       const res = await upsertInventoryItem({
         input: {
           storeId: store.id,
@@ -117,6 +150,8 @@ export function StoreDetailPage() {
         return;
       }
       setEditingId('');
+      setEditProductName('');
+      setEditProductCategory('');
       await reexecute({ requestPolicy: 'network-only' });
     } finally {
       setSaving(false);
@@ -291,6 +326,12 @@ export function StoreDetailPage() {
             overflow: 'hidden',
           }}
         >
+          {formError ? (
+            <div style={{ padding: 12, borderBottom: '1px solid #eee' }}>
+              <ErrorState title="Could not save" details={formError} />
+            </div>
+          ) : null}
+
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead style={{ background: '#fafafa' }}>
               <tr>
@@ -356,12 +397,30 @@ export function StoreDetailPage() {
                     <td
                       style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
                     >
-                      {it.product.name}
+                      {isEditing ? (
+                        <input
+                          value={editProductName}
+                          onChange={(e) => setEditProductName(e.target.value)}
+                          placeholder="Product name"
+                        />
+                      ) : (
+                        it.product.name
+                      )}
                     </td>
                     <td
                       style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
                     >
-                      {it.product.category}
+                      {isEditing ? (
+                        <input
+                          value={editProductCategory}
+                          onChange={(e) =>
+                            setEditProductCategory(e.target.value)
+                          }
+                          placeholder="Category"
+                        />
+                      ) : (
+                        it.product.category
+                      )}
                     </td>
                     <td
                       style={{
@@ -423,15 +482,19 @@ export function StoreDetailPage() {
                           }}
                         >
                           <button
-                            disabled={saving || savingMutation}
+                            disabled={saving || savingMutation || updatingProductMutation}
                             onClick={save}
                           >
-                            {saving || savingMutation ? 'Saving…' : 'Save'}
+                            {saving || savingMutation || updatingProductMutation
+                              ? 'Saving…'
+                              : 'Save'}
                           </button>
                           <button
-                            disabled={saving || savingMutation}
+                            disabled={saving || savingMutation || updatingProductMutation}
                             onClick={() => {
                               setEditingId('');
+                              setEditProductName('');
+                              setEditProductCategory('');
                               setFormError('');
                             }}
                           >
@@ -485,12 +548,6 @@ export function StoreDetailPage() {
               })}
             </tbody>
           </table>
-
-          {formError ? (
-            <div style={{ padding: 12 }}>
-              <ErrorState title="Could not save" details={formError} />
-            </div>
-          ) : null}
         </section>
       )}
 

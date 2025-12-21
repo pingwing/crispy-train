@@ -12,6 +12,27 @@ import { newId } from '../../utils/ids';
 export class MemoryInventoryRepository implements IInventoryRepository {
   constructor(private readonly db: MemoryDb) {}
 
+  async listStoreIdsForProduct(productId: string): Promise<string[]> {
+    const ids = new Set<string>();
+    for (const ii of this.db.inventoryByStoreProduct.values()) {
+      if (ii.product.id === productId) ids.add(ii.store.id);
+    }
+    return [...ids.values()];
+  }
+
+  async hasProductNameConflictInStore(input: {
+    storeId: string;
+    productName: string;
+    excludeProductId: string;
+  }): Promise<boolean> {
+    for (const ii of this.db.inventoryByStoreProduct.values()) {
+      if (ii.store.id !== input.storeId) continue;
+      if (ii.product.id === input.excludeProductId) continue;
+      if (ii.product.name === input.productName) return true;
+    }
+    return false;
+  }
+
   async listInventoryItems(
     filter: InventoryItemFilter,
     page: number,

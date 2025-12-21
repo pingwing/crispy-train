@@ -55,6 +55,12 @@ export interface IInventoryRepository {
     pageSize: number,
     sort?: InventoryItemSort,
   ): Promise<Paged<InventoryItem>>;
+  listStoreIdsForProduct(productId: string): Promise<string[]>;
+  hasProductNameConflictInStore(input: {
+    storeId: string;
+    productName: string;
+    excludeProductId: string;
+  }): Promise<boolean>;
   deleteInventoryItem(input: {
     storeId: string;
     productId: string;
@@ -70,6 +76,15 @@ export interface IInventoryRepository {
 
 export class InventoryRepository implements IInventoryRepository {
   constructor(private readonly em: SqlEntityManager) {}
+
+  private isUuid(value: unknown): value is string {
+    return (
+      typeof value === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        value,
+      )
+    );
+  }
 
   private isUniqueViolation(e: unknown): boolean {
     if (e instanceof UniqueConstraintViolationException) return true;
@@ -93,6 +108,45 @@ export class InventoryRepository implements IInventoryRepository {
       product: { id: input.productId },
     });
     return deleted > 0;
+  }
+
+  async listStoreIdsForProduct(productId: string): Promise<string[]> {
+    const rows = await this.em
+      .createQueryBuilder(InventoryItemEntity, 'ii')
+      // Use quoted identifiers so Postgres returns a stable column alias.
+      .select([raw('distinct "ii"."store_id" as store_id')])
+      .where({ product: productId })
+      .execute('all');
+
+    const ids = new Set<string>();
+    for (const r of rows as unknown as Array<Record<string, unknown>>) {
+      const candidate =
+        (r as any).store_id ?? (r as any).storeId ?? (r as any).store;
+      if (this.isUuid(candidate)) ids.add(candidate);
+    }
+    return [...ids.values()];
+  }
+
+  async hasProductNameConflictInStore(input: {
+    storeId: string;
+    productName: string;
+    excludeProductId: string;
+  }): Promise<boolean> {
+    // Defensive: never execute a UUID-typed comparison with an invalid value.
+    if (!this.isUuid(input.storeId) || !this.isUuid(input.excludeProductId))
+      return false;
+
+    const rows = await this.em
+      .createQueryBuilder(InventoryItemEntity, 'ii')
+      .leftJoin('ii.product', 'p')
+      .select([raw('1')])
+      .where({ store: input.storeId })
+      .andWhere({ 'p.name': input.productName })
+      .andWhere({ 'p.id': { $ne: input.excludeProductId } })
+      .limit(1)
+      .execute('all');
+
+    return (rows as unknown as any[]).length > 0;
   }
 
   async listInventoryItems(
