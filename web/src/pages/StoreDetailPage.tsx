@@ -298,7 +298,10 @@ export function StoreDetailPage() {
                     setDeleteStoreError(res.error.message);
                     return;
                   }
-                  navigate('/', { replace: true, state: { refreshInventory: true } });
+                  navigate('/', {
+                    replace: true,
+                    state: { refreshInventory: true },
+                  });
                 }}
               >
                 {deletingStoreMutation ? 'Deleting…' : 'Delete store'}
@@ -482,7 +485,11 @@ export function StoreDetailPage() {
                           }}
                         >
                           <button
-                            disabled={saving || savingMutation || updatingProductMutation}
+                            disabled={
+                              saving ||
+                              savingMutation ||
+                              updatingProductMutation
+                            }
                             onClick={save}
                           >
                             {saving || savingMutation || updatingProductMutation
@@ -490,7 +497,11 @@ export function StoreDetailPage() {
                               : 'Save'}
                           </button>
                           <button
-                            disabled={saving || savingMutation || updatingProductMutation}
+                            disabled={
+                              saving ||
+                              savingMutation ||
+                              updatingProductMutation
+                            }
                             onClick={() => {
                               setEditingId('');
                               setEditProductName('');

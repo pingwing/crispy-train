@@ -15,8 +15,7 @@ import {
 export function InventoryListPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const refreshInventory =
-    (location.state as any)?.refreshInventory === true;
+  const refreshInventory = (location.state as any)?.refreshInventory === true;
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -106,7 +105,10 @@ export function InventoryListPage() {
     reexecuteStoresQuery({ requestPolicy: 'network-only' });
     reexecuteInventoryItemsQuery({ requestPolicy: 'network-only' });
     // Clear the one-time refresh flag so future renders use default caching.
-    navigate(location.pathname + location.search, { replace: true, state: null });
+    navigate(location.pathname + location.search, {
+      replace: true,
+      state: null,
+    });
   }, [
     refreshInventory,
     reexecuteStoresQuery,
