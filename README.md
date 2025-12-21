@@ -41,6 +41,5 @@
     - `cd server && REPO_CONTRACT_DB=1 REPO_CONTRACT_DB_ALLOW_DESTRUCTIVE=1 npm test`
 
 ## If I had more time I'd add:
-- A real deployment example.
-- Improve UX polish in the web app: better empty states, optimistic updates, and clearer validation errors surfaced from GraphQL.
-- Playwright frontend automated end-to-end tests.
+- Deployment for this example app.
+- Playwright automated frontend end-to-end tests.
