@@ -227,6 +227,7 @@ describe('InventoryService (mocked repositories)', () => {
     const getStoreEntityById = createAsyncSpy(
       async (_id: string) => ({}) as any,
     );
+    const listInventoryItems = createAsyncSpy(async (_storeId: string) => []);
     const getProductEntityById = createAsyncSpy(
       async (_id: string) => ({}) as any,
     );
@@ -241,7 +242,10 @@ describe('InventoryService (mocked repositories)', () => {
     });
 
     const service = new InventoryService(
-      { getEntityById: getStoreEntityById } as unknown as IStoreRepository,
+      {
+        getEntityById: getStoreEntityById,
+        listInventoryItems,
+      } as unknown as IStoreRepository,
       { getEntityById: getProductEntityById } as unknown as IProductRepository,
       { upsertInventoryItem: upsert } as unknown as IInventoryRepository,
     );
@@ -254,6 +258,7 @@ describe('InventoryService (mocked repositories)', () => {
     });
     assert.equal(result.quantity, 2); // from createItem()
     assert.deepEqual(getStoreEntityById.calls, [[STORE_ID]]);
+    assert.deepEqual(listInventoryItems.calls, [[STORE_ID]]);
     assert.deepEqual(getProductEntityById.calls, [[PRODUCT_ID]]);
     assert.equal(upsert.calls.length, 1);
   });
@@ -314,7 +319,10 @@ describe('InventoryService (mocked repositories)', () => {
 
   it('upsertInventoryItem throws ValidationError when inventory.upsertInventoryItem returns null', async () => {
     const service = new InventoryService(
-      { getEntityById: async () => ({}) as any } as unknown as IStoreRepository,
+      {
+        getEntityById: async () => ({}) as any,
+        listInventoryItems: async () => [],
+      } as unknown as IStoreRepository,
       {
         getEntityById: async () => ({}) as any,
       } as unknown as IProductRepository,

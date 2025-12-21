@@ -315,7 +315,9 @@ describe('GraphQL resolvers', () => {
     it('inventoryItems maps invalid filter to GraphQLError BAD_USER_INPUT', async () => {
       const listInventoryItems = createAsyncSpy(async () => {
         throw new ValidationError('Invalid filter', {
-          issues: [{ code: 'custom', message: 'bad filter', path: ['minPrice'] }],
+          issues: [
+            { code: 'custom', message: 'bad filter', path: ['minPrice'] },
+          ],
         });
       });
 

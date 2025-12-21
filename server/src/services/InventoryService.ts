@@ -73,7 +73,11 @@ export class InventoryService {
     const pageSize = Math.min(100, Math.max(1, args.pageSize ?? 20));
     const filter =
       args.filter && Object.keys(args.filter).length
-        ? parseOrValidationError(InventoryItemFilterSchema, args.filter, 'Invalid filter')
+        ? parseOrValidationError(
+            InventoryItemFilterSchema,
+            args.filter,
+            'Invalid filter',
+          )
         : {};
     return this.inventory.listInventoryItems(filter, page, pageSize, args.sort);
   }
@@ -113,7 +117,11 @@ export class InventoryService {
   }
 
   async deleteStore(id: string) {
-    const parsed = parseOrValidationError(z.string().uuid(), id, 'Invalid store id');
+    const parsed = parseOrValidationError(
+      z.string().uuid(),
+      id,
+      'Invalid store id',
+    );
     const deleted = await this.stores.delete(parsed);
     if (!deleted) throw new NotFoundError('Store not found');
     return true;
@@ -165,6 +173,19 @@ export class InventoryService {
     if (!store) throw new NotFoundError('Store not found');
     const product = await this.products.getEntityById(parsed.productId);
     if (!product) throw new NotFoundError('Product not found');
+
+    // Enforce product name uniqueness per-store (products are global).
+    const existingInStore = await this.stores.listInventoryItems(
+      parsed.storeId,
+    );
+    const nameConflict = existingInStore.find(
+      (ii) => ii.product.name === product.name && ii.product.id !== product.id,
+    );
+    if (nameConflict) {
+      throw new ValidationError('Product name must be unique in this store', {
+        field: 'name',
+      });
+    }
 
     const item = await this.inventory.upsertInventoryItem(parsed);
     if (!item) throw new ValidationError('Could not upsert inventory item');

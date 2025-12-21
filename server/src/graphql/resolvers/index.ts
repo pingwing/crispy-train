@@ -210,7 +210,9 @@ export const resolvers: Resolvers = {
     }),
 
     upsertInventoryItem: wrapResolver(async (_p, args, ctx) => {
-      return await ctx.services.inventoryService.upsertInventoryItem(args.input);
+      return await ctx.services.inventoryService.upsertInventoryItem(
+        args.input,
+      );
     }),
 
     deleteInventoryItem: wrapResolver(async (_p, args, ctx) => {

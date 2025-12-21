@@ -72,7 +72,9 @@ export class StoreRepository implements IStoreRepository {
     } catch (e) {
       // Race-safe: another request may have inserted same name after our pre-check.
       if (isUniqueViolation(e))
-        throw new ValidationError('Store name must be unique', { field: 'name' });
+        throw new ValidationError('Store name must be unique', {
+          field: 'name',
+        });
       throw e;
     }
     return toDomainStore(store);
@@ -100,7 +102,9 @@ export class StoreRepository implements IStoreRepository {
       await this.em.persist(store).flush();
     } catch (e) {
       if (isUniqueViolation(e))
-        throw new ValidationError('Store name must be unique', { field: 'name' });
+        throw new ValidationError('Store name must be unique', {
+          field: 'name',
+        });
       throw e;
     }
     return toDomainStore(store);
