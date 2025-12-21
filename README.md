@@ -14,10 +14,11 @@
 - Query `store(id: ID!)`: store detail (+ `inventoryItems` field)
 - Query `inventoryItems(filter, sort, page = 1, pageSize = 20)`: filtered + sorted + paginated list across stores
 - Query `storeInventorySummary(storeId: ID!)`: totals + `lowStockCount` (aggregation)
-- Mutation `createStore(input: StoreCreateInput!)`, `updateStore(id: ID!, input: StoreUpdateInput!)`
+- Mutation `createStore(input: StoreCreateInput!)`, `updateStore(id: ID!, input: StoreUpdateInput!)`, `deleteStore(id: ID!)`
 - Mutation `createProduct(input: ProductCreateInput!)`, `updateProduct(id: ID!, input: ProductUpdateInput!)`
 - Mutation `upsertInventoryItem(input: InventoryItemUpsertInput!)`
 - Mutation `deleteInventoryItem(storeId: ID!, productId: ID!)`
+- Constraint: **product names are unique within a store** (enforced when adding/updating inventory items and when renaming products).
 
 ## Decisions & trade-offs
 - **Mikro-ORM + Postgres**: Mikro-ORM is my favourite Postgre ORM, it's small, easy to use, fast. Postgre SQL is a good choice for various types of applications. It's popular, so it's easy to find different hosting options.
