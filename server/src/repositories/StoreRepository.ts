@@ -1,10 +1,20 @@
 import type { SqlEntityManager } from '@mikro-orm/postgresql';
+import { UniqueConstraintViolationException } from '@mikro-orm/core';
 import {
   InventoryItem as InventoryItemEntity,
   Store as StoreEntity,
 } from '../db/entities';
 import { InventoryItem, Store, ValidationError } from '../domain';
 import { toDomainInventoryItem, toDomainStore } from './mappers';
+
+function isUniqueViolation(e: unknown): boolean {
+  if (e instanceof UniqueConstraintViolationException) return true;
+  const anyE = e as any;
+  // Postgres unique_violation
+  if (anyE?.code === '23505') return true;
+  if (anyE?.cause?.code === '23505') return true;
+  return false;
+}
 
 export interface IStoreRepository {
   list(): Promise<Store[]>;
@@ -56,7 +66,14 @@ export class StoreRepository implements IStoreRepository {
       name: input.name,
       location: input.location ?? undefined,
     });
-    await this.em.persist(store).flush();
+    try {
+      await this.em.persist(store).flush();
+    } catch (e) {
+      // Race-safe: another request may have inserted same name after our pre-check.
+      if (isUniqueViolation(e))
+        throw new ValidationError('Store name must be unique', { field: 'name' });
+      throw e;
+    }
     return toDomainStore(store);
   }
 
@@ -78,7 +95,13 @@ export class StoreRepository implements IStoreRepository {
 
     if (input.location !== undefined)
       store.location = input.location ?? undefined;
-    await this.em.persist(store).flush();
+    try {
+      await this.em.persist(store).flush();
+    } catch (e) {
+      if (isUniqueViolation(e))
+        throw new ValidationError('Store name must be unique', { field: 'name' });
+      throw e;
+    }
     return toDomainStore(store);
   }
 

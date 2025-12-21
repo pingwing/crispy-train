@@ -89,6 +89,31 @@ describe('InventoryService (mocked repositories)', () => {
     ]);
   });
 
+  it('listInventoryItems validates filter and throws ValidationError for invalid minPrice', async () => {
+    const listInventoryItems = createAsyncSpy(async () => ({
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 20,
+    }));
+    const service = new InventoryService(
+      {} as IStoreRepository,
+      {} as IProductRepository,
+      { listInventoryItems } as unknown as IInventoryRepository,
+    );
+
+    await assert.rejects(
+      () =>
+        service.listInventoryItems({
+          filter: { minPrice: 'not-a-number' } as any,
+        }),
+      (err: any) => {
+        assert.ok(err instanceof ValidationError);
+        return true;
+      },
+    );
+  });
+
   it('getStoreInventorySummary throws NotFoundError when repository returns null', async () => {
     const storeInventorySummary = createAsyncSpy(async () => null);
     const service = new InventoryService(

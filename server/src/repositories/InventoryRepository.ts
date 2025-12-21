@@ -1,5 +1,9 @@
 import type { SqlEntityManager } from '@mikro-orm/postgresql';
-import { raw } from '@mikro-orm/core';
+import {
+  UniqueConstraintViolationException,
+  ForeignKeyConstraintViolationException,
+  raw,
+} from '@mikro-orm/core';
 import {
   InventoryItem as InventoryItemEntity,
   Product as ProductEntity,
@@ -67,14 +71,27 @@ export interface IInventoryRepository {
 export class InventoryRepository implements IInventoryRepository {
   constructor(private readonly em: SqlEntityManager) {}
 
+  private isUniqueViolation(e: unknown): boolean {
+    if (e instanceof UniqueConstraintViolationException) return true;
+    const err = e as { code?: unknown; cause?: { code?: unknown } };
+    return err?.code === '23505' || err?.cause?.code === '23505';
+  }
+
+  private isForeignKeyViolation(e: unknown): boolean {
+    if (e instanceof ForeignKeyConstraintViolationException) return true;
+    const err = e as { code?: unknown; cause?: { code?: unknown } };
+    // Postgres foreign_key_violation
+    return err?.code === '23503' || err?.cause?.code === '23503';
+  }
+
   async deleteInventoryItem(input: {
     storeId: string;
     productId: string;
   }): Promise<boolean> {
     const deleted = await this.em.nativeDelete(InventoryItemEntity, {
-      store: input.storeId,
-      product: input.productId,
-    } as any);
+      store: { id: input.storeId },
+      product: { id: input.productId },
+    });
     return deleted > 0;
   }
 
@@ -135,15 +152,16 @@ export class InventoryRepository implements IInventoryRepository {
         'ii.id': 'asc',
       });
     } else if (sort.field === 'PRICE') {
-      qb.orderBy({ 'ii.price': dir, ...stable } as any);
+      qb.orderBy({ 'ii.price': dir, ...stable });
     } else if (sort.field === 'QUANTITY') {
-      qb.orderBy({ 'ii.quantity': dir, ...stable } as any);
+      qb.orderBy({ 'ii.quantity': dir, ...stable });
     } else if (sort.field === 'VALUE') {
       // price is stored as numeric, so quantity * price works as numeric in Postgres.
+      const valueExpr = raw('(ii.quantity * ii.price)');
       qb.orderBy({
-        [raw('(ii.quantity * ii.price)') as any]: dir,
+        [valueExpr as unknown as string]: dir,
         ...stable,
-      } as any);
+      });
     } else {
       qb.orderBy(stable);
     }
@@ -164,26 +182,41 @@ export class InventoryRepository implements IInventoryRepository {
     price: string;
     quantity: number;
   }): Promise<InventoryItem | null> {
-    const store = await this.em.findOne(StoreEntity, { id: input.storeId });
-    if (!store) return null;
-    const product = await this.em.findOne(ProductEntity, {
-      id: input.productId,
-    });
-    if (!product) return null;
-
     let item = await this.em.findOne(
       InventoryItemEntity,
-      { store: store.id, product: product.id },
+      { store: { id: input.storeId }, product: { id: input.productId } },
       { populate: ['store', 'product'] as const },
     );
     if (!item) {
+      // Avoid redundant DB reads: use references (FK constraints will validate on flush).
+      const storeRef = this.em.getReference(StoreEntity, input.storeId);
+      const productRef = this.em.getReference(ProductEntity, input.productId);
       item = this.em.create(InventoryItemEntity, {
-        store,
-        product,
+        store: storeRef,
+        product: productRef,
         price: input.price,
         quantity: input.quantity,
       });
-      await this.em.persist(item).flush();
+      try {
+        await this.em.persist(item).flush();
+      } catch (e) {
+        // Missing store/product (deleted concurrently, etc.)
+        if (this.isForeignKeyViolation(e)) return null;
+        // Race: two writers try to insert same (store,product) concurrently.
+        if (this.isUniqueViolation(e)) {
+          const existing = await this.em.findOne(
+            InventoryItemEntity,
+            { store: { id: input.storeId }, product: { id: input.productId } },
+            { populate: ['store', 'product'] as const },
+          );
+          if (!existing) throw e;
+          existing.price = input.price;
+          existing.quantity = input.quantity;
+          await this.em.persist(existing).flush();
+          return toDomainInventoryItem(existing);
+        }
+        throw e;
+      }
       await this.em.populate(item, ['store', 'product'] as const);
       return toDomainInventoryItem(item);
     }
@@ -215,7 +248,12 @@ export class InventoryRepository implements IInventoryRepository {
       .where({ store: storeEntity.id })
       .execute('get');
 
-    const row = rows as any;
+    const row = rows as unknown as {
+      total_skus?: string | number | null;
+      total_quantity?: string | number | null;
+      total_value?: string | number | null;
+      low_stock_count?: string | number | null;
+    };
     return {
       store: toDomainStore(storeEntity),
       totalSkus: Number(row.total_skus ?? 0),

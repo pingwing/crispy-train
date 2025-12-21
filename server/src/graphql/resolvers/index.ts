@@ -1,4 +1,5 @@
-import { GraphQLError } from 'graphql';
+import { GraphQLError, GraphQLScalarType, Kind } from 'graphql';
+import { z } from 'zod';
 import {
   InventoryItemSortField,
   SortDirection,
@@ -13,6 +14,11 @@ import type {
 } from '../../repositories/InventoryRepository';
 
 function toGraphQLError(err: unknown): GraphQLError {
+  if (err instanceof z.ZodError) {
+    return new GraphQLError('Invalid input', {
+      extensions: { code: 'BAD_USER_INPUT', details: { issues: err.issues } },
+    });
+  }
   if (err instanceof ValidationError) {
     return new GraphQLError(err.message, {
       extensions: { code: 'BAD_USER_INPUT', details: err.details },
@@ -25,6 +31,18 @@ function toGraphQLError(err: unknown): GraphQLError {
   return new GraphQLError('Internal server error', {
     extensions: { code: 'INTERNAL' },
   });
+}
+
+function wrapResolver<TArgs extends any[], TResult>(
+  fn: (...args: TArgs) => Promise<TResult> | TResult,
+) {
+  return async (...args: TArgs): Promise<TResult> => {
+    try {
+      return await fn(...args);
+    } catch (e) {
+      throw toGraphQLError(e);
+    }
+  };
 }
 
 function toInventoryItemFilter(
@@ -95,18 +113,52 @@ function toProductUpdateInput(input: {
 }
 
 export const resolvers: Resolvers = {
+  DateTime: new GraphQLScalarType({
+    name: 'DateTime',
+    description: 'ISO-8601 DateTime string',
+    serialize(value) {
+      if (value instanceof Date) return value.toISOString();
+      if (typeof value === 'string') {
+        const d = new Date(value);
+        if (!Number.isNaN(d.getTime())) return d.toISOString();
+      }
+      if (typeof value === 'number') {
+        const d = new Date(value);
+        if (!Number.isNaN(d.getTime())) return d.toISOString();
+      }
+      throw new GraphQLError('DateTime cannot represent an invalid date value');
+    },
+    parseValue(value) {
+      if (typeof value === 'string' || typeof value === 'number') {
+        const d = new Date(value);
+        if (!Number.isNaN(d.getTime())) return d;
+      }
+      throw new GraphQLError('DateTime cannot represent an invalid date value');
+    },
+    parseLiteral(ast) {
+      if (ast.kind === Kind.STRING) {
+        const d = new Date(ast.value);
+        if (!Number.isNaN(d.getTime())) return d;
+      }
+      if (ast.kind === Kind.INT) {
+        const d = new Date(Number(ast.value));
+        if (!Number.isNaN(d.getTime())) return d;
+      }
+      return null;
+    },
+  }),
   Query: {
-    _health: async () => 'ok',
+    _health: wrapResolver(async () => 'ok'),
 
-    stores: async (_p, _a, ctx) => {
+    stores: wrapResolver(async (_p, _a, ctx) => {
       return ctx.services.inventoryService.listStores();
-    },
+    }),
 
-    store: async (_p, args, ctx) => {
+    store: wrapResolver(async (_p, args, ctx) => {
       return ctx.services.inventoryService.getStore(args.id);
-    },
+    }),
 
-    inventoryItems: async (_p, args, ctx) => {
+    inventoryItems: wrapResolver(async (_p, args, ctx) => {
       const result = await ctx.services.inventoryService.listInventoryItems({
         filter: toInventoryItemFilter(args.filter),
         sort: toInventoryItemSort(args.sort),
@@ -121,80 +173,54 @@ export const resolvers: Resolvers = {
           total: result.total,
         },
       };
-    },
+    }),
 
-    storeInventorySummary: async (_p, args, ctx) => {
+    storeInventorySummary: wrapResolver(async (_p, args, ctx) => {
       return ctx.services.inventoryService.getStoreInventorySummary(
         args.storeId,
       );
-    },
+    }),
   },
 
   Mutation: {
-    createStore: async (_p, args, ctx) => {
-      try {
-        return await ctx.services.inventoryService.createStore(args.input);
-      } catch (e) {
-        throw toGraphQLError(e);
-      }
-    },
+    createStore: wrapResolver(async (_p, args, ctx) => {
+      return await ctx.services.inventoryService.createStore(args.input);
+    }),
 
-    updateStore: async (_p, args, ctx) => {
-      try {
-        return await ctx.services.inventoryService.updateStore(
-          args.id,
-          toStoreUpdateInput(args.input),
-        );
-      } catch (e) {
-        throw toGraphQLError(e);
-      }
-    },
+    updateStore: wrapResolver(async (_p, args, ctx) => {
+      return await ctx.services.inventoryService.updateStore(
+        args.id,
+        toStoreUpdateInput(args.input),
+      );
+    }),
 
-    createProduct: async (_p, args, ctx) => {
-      try {
-        return await ctx.services.inventoryService.createProduct(args.input);
-      } catch (e) {
-        throw toGraphQLError(e);
-      }
-    },
+    createProduct: wrapResolver(async (_p, args, ctx) => {
+      return await ctx.services.inventoryService.createProduct(args.input);
+    }),
 
-    updateProduct: async (_p, args, ctx) => {
-      try {
-        return await ctx.services.inventoryService.updateProduct(
-          args.id,
-          toProductUpdateInput(args.input),
-        );
-      } catch (e) {
-        throw toGraphQLError(e);
-      }
-    },
+    updateProduct: wrapResolver(async (_p, args, ctx) => {
+      return await ctx.services.inventoryService.updateProduct(
+        args.id,
+        toProductUpdateInput(args.input),
+      );
+    }),
 
-    upsertInventoryItem: async (_p, args, ctx) => {
-      try {
-        return await ctx.services.inventoryService.upsertInventoryItem(
-          args.input,
-        );
-      } catch (e) {
-        throw toGraphQLError(e);
-      }
-    },
+    upsertInventoryItem: wrapResolver(async (_p, args, ctx) => {
+      return await ctx.services.inventoryService.upsertInventoryItem(args.input);
+    }),
 
-    deleteInventoryItem: async (_p, args, ctx) => {
-      try {
-        return await ctx.services.inventoryService.deleteInventoryItem({
-          storeId: args.storeId,
-          productId: args.productId,
-        });
-      } catch (e) {
-        throw toGraphQLError(e);
-      }
-    },
+    deleteInventoryItem: wrapResolver(async (_p, args, ctx) => {
+      return await ctx.services.inventoryService.deleteInventoryItem({
+        storeId: args.storeId,
+        productId: args.productId,
+      });
+    }),
   },
 
   Store: {
-    inventoryItems: async (store, _args, ctx) => {
+    inventoryItems: wrapResolver(async (store, _args, ctx) => {
       return ctx.services.stores.listInventoryItems(store.id);
-    },
+    }),
   },
 
   // inventoryValue is a getter on the domain model; default resolver will pick it up.

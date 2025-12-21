@@ -44,6 +44,14 @@ function createCtx(overrides?: Partial<GraphQLContext>): GraphQLContext {
 const d = new Date('2020-01-01T00:00:00.000Z');
 
 describe('GraphQL resolvers', () => {
+  describe('Scalars', () => {
+    it('DateTime scalar serializes Dates to ISO strings', () => {
+      const dt = (resolvers as any).DateTime;
+      assert.ok(dt);
+      assert.equal(dt.serialize(d), '2020-01-01T00:00:00.000Z');
+    });
+  });
+
   describe('Query', () => {
     it('_health returns ok', async () => {
       const ctx = createCtx();
@@ -273,6 +281,69 @@ describe('GraphQL resolvers', () => {
       );
 
       assert.equal(listInventoryItems.calls.length, 1);
+    });
+
+    it('storeInventorySummary maps NotFoundError to GraphQLError NOT_FOUND', async () => {
+      const getStoreInventorySummary = createAsyncSpy(async () => {
+        throw new NotFoundError('Store not found');
+      });
+
+      const ctx = createCtx({
+        services: {
+          ...(createCtx().services as any),
+          inventoryService: { getStoreInventorySummary },
+        },
+      } as any);
+
+      await assert.rejects(
+        () =>
+          asResolverFn(resolvers.Query!.storeInventorySummary)(
+            {},
+            { storeId: 's1' },
+            ctx,
+            null as any,
+          ),
+        (err: any) => {
+          assert.ok(err instanceof GraphQLError);
+          assert.equal(err.message, 'Store not found');
+          assert.equal(err.extensions?.code, 'NOT_FOUND');
+          return true;
+        },
+      );
+    });
+
+    it('inventoryItems maps invalid filter to GraphQLError BAD_USER_INPUT', async () => {
+      const listInventoryItems = createAsyncSpy(async () => {
+        throw new ValidationError('Invalid filter', {
+          issues: [{ code: 'custom', message: 'bad filter', path: ['minPrice'] }],
+        });
+      });
+
+      const ctx = createCtx({
+        services: {
+          ...(createCtx().services as any),
+          inventoryService: { listInventoryItems },
+        },
+      } as any);
+
+      await assert.rejects(
+        () =>
+          asResolverFn(resolvers.Query!.inventoryItems)(
+            {},
+            {
+              filter: { minPrice: 'not-a-number' },
+              page: 1,
+              pageSize: 20,
+            },
+            ctx,
+            null as any,
+          ),
+        (err: any) => {
+          assert.ok(err instanceof GraphQLError);
+          assert.equal(err.extensions?.code, 'BAD_USER_INPUT');
+          return true;
+        },
+      );
     });
   });
 

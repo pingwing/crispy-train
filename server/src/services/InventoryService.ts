@@ -8,6 +8,46 @@ import type { IStoreRepository } from '../repositories/StoreRepository';
 import type { IProductRepository } from '../repositories/ProductRepository';
 import { NotFoundError, ValidationError } from '../domain';
 
+function parseOrValidationError<T>(
+  schema: z.ZodType<T>,
+  input: unknown,
+  message = 'Invalid input',
+): T {
+  const res = schema.safeParse(input);
+  if (res.success) return res.data;
+  throw new ValidationError(message, { issues: res.error.issues });
+}
+
+const DecimalString = z
+  .string()
+  .regex(/^[0-9]+(\.[0-9]{1,2})?$/, 'must be a decimal string')
+  .refine((v) => Number(v) >= 0, 'must be >= 0');
+
+const InventoryItemFilterSchema = z
+  .object({
+    storeId: z.string().trim().min(1).optional(),
+    category: z.string().trim().min(1).max(80).optional(),
+    search: z.string().trim().min(1).max(120).optional(),
+    minPrice: DecimalString.optional(),
+    maxPrice: DecimalString.optional(),
+    minQuantity: z.number().int().min(0).optional(),
+    maxQuantity: z.number().int().min(0).optional(),
+  })
+  .refine(
+    (v) =>
+      v.minQuantity === undefined ||
+      v.maxQuantity === undefined ||
+      v.minQuantity <= v.maxQuantity,
+    { message: 'minQuantity must be <= maxQuantity' },
+  )
+  .refine(
+    (v) =>
+      v.minPrice === undefined ||
+      v.maxPrice === undefined ||
+      Number(v.minPrice) <= Number(v.maxPrice),
+    { message: 'minPrice must be <= maxPrice' },
+  );
+
 export class InventoryService {
   constructor(
     private readonly stores: IStoreRepository,
@@ -31,7 +71,10 @@ export class InventoryService {
   }) {
     const page = Math.max(1, args.page ?? 1);
     const pageSize = Math.min(100, Math.max(1, args.pageSize ?? 20));
-    const filter = args.filter ?? {};
+    const filter =
+      args.filter && Object.keys(args.filter).length
+        ? parseOrValidationError(InventoryItemFilterSchema, args.filter, 'Invalid filter')
+        : {};
     return this.inventory.listInventoryItems(filter, page, pageSize, args.sort);
   }
 
@@ -42,12 +85,13 @@ export class InventoryService {
   }
 
   async createStore(input: { name: string; location?: string | null }) {
-    const parsed = z
-      .object({
+    const parsed = parseOrValidationError(
+      z.object({
         name: z.string().trim().min(1).max(120),
         location: z.string().trim().min(1).max(120).optional().nullable(),
-      })
-      .parse(input);
+      }),
+      input,
+    );
     return this.stores.create(parsed);
   }
 
@@ -55,12 +99,13 @@ export class InventoryService {
     id: string,
     input: { name?: string; location?: string | null },
   ) {
-    const parsed = z
-      .object({
+    const parsed = parseOrValidationError(
+      z.object({
         name: z.string().trim().min(1).max(120).optional(),
         location: z.string().trim().min(1).max(120).optional().nullable(),
-      })
-      .parse(input);
+      }),
+      input,
+    );
 
     const store = await this.stores.update(id, parsed);
     if (!store) throw new NotFoundError('Store not found');
@@ -68,23 +113,25 @@ export class InventoryService {
   }
 
   async createProduct(input: { name: string; category: string }) {
-    const parsed = z
-      .object({
+    const parsed = parseOrValidationError(
+      z.object({
         name: z.string().trim().min(1).max(120),
         category: z.string().trim().min(1).max(80),
-      })
-      .parse(input);
+      }),
+      input,
+    );
 
     return this.products.create(parsed);
   }
 
   async updateProduct(id: string, input: { name?: string; category?: string }) {
-    const parsed = z
-      .object({
+    const parsed = parseOrValidationError(
+      z.object({
         name: z.string().trim().min(1).max(120).optional(),
         category: z.string().trim().min(1).max(80).optional(),
-      })
-      .parse(input);
+      }),
+      input,
+    );
 
     const product = await this.products.update(id, parsed);
     if (!product) throw new NotFoundError('Product not found');
@@ -97,17 +144,15 @@ export class InventoryService {
     price: string;
     quantity: number;
   }) {
-    const parsed = z
-      .object({
+    const parsed = parseOrValidationError(
+      z.object({
         storeId: z.string().uuid(),
         productId: z.string().uuid(),
-        price: z
-          .string()
-          .regex(/^[0-9]+(\.[0-9]{1,2})?$/, 'price must be a decimal string')
-          .refine((v) => Number(v) >= 0, 'price must be >= 0'),
+        price: DecimalString,
         quantity: z.number().int().min(0).max(1_000_000),
-      })
-      .parse(input);
+      }),
+      input,
+    );
 
     const store = await this.stores.getEntityById(parsed.storeId);
     if (!store) throw new NotFoundError('Store not found');
@@ -120,12 +165,13 @@ export class InventoryService {
   }
 
   async deleteInventoryItem(input: { storeId: string; productId: string }) {
-    const parsed = z
-      .object({
+    const parsed = parseOrValidationError(
+      z.object({
         storeId: z.string().uuid(),
         productId: z.string().uuid(),
-      })
-      .parse(input);
+      }),
+      input,
+    );
 
     const deleted = await this.inventory.deleteInventoryItem(parsed);
     if (!deleted) throw new NotFoundError('Inventory item not found');
