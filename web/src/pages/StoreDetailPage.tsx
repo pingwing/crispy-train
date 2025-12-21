@@ -18,10 +18,14 @@ export function StoreDetailPage() {
     pause: !storeId,
   });
 
-  const [{ fetching: savingMutation }, upsertInventoryItem] = useUpsertInventoryItemMutation();
-  const [{ fetching: creatingProductMutation }, createProduct] = useCreateProductMutation();
-  const [{ fetching: updatingStoreMutation }, updateStore] = useUpdateStoreMutation();
-  const [{ fetching: deletingMutation }, deleteInventoryItem] = useDeleteInventoryItemMutation();
+  const [{ fetching: savingMutation }, upsertInventoryItem] =
+    useUpsertInventoryItemMutation();
+  const [{ fetching: creatingProductMutation }, createProduct] =
+    useCreateProductMutation();
+  const [{ fetching: updatingStoreMutation }, updateStore] =
+    useUpdateStoreMutation();
+  const [{ fetching: deletingMutation }, deleteInventoryItem] =
+    useDeleteInventoryItemMutation();
 
   const store = data?.store;
   const summary = data?.storeInventorySummary;
@@ -45,14 +49,25 @@ export function StoreDetailPage() {
   const [storeNameError, setStoreNameError] = useState<string>('');
   const [storeNameSuccess, setStoreNameSuccess] = useState<string>('');
 
-  const current = useMemo(() => (store?.inventoryItems ?? []).find((i) => i.id === editingId), [store?.inventoryItems, editingId]);
+  const current = useMemo(
+    () => (store?.inventoryItems ?? []).find((i) => i.id === editingId),
+    [store?.inventoryItems, editingId],
+  );
 
-  if (!storeId) return <ErrorState title="Bad URL" details="Missing storeId param." />;
+  if (!storeId)
+    return <ErrorState title="Bad URL" details="Missing storeId param." />;
 
   if (fetching) return <LoadingState title="Loading store…" />;
-  if (error) return <ErrorState title="Could not load store" details={error.message} />;
+  if (error)
+    return <ErrorState title="Could not load store" details={error.message} />;
 
-  if (!store) return <EmptyState title="Store not found" details={<Link to="/">Back to inventory</Link>} />;
+  if (!store)
+    return (
+      <EmptyState
+        title="Store not found"
+        details={<Link to="/">Back to inventory</Link>}
+      />
+    );
 
   async function startEdit(item: (typeof items)[number]) {
     setFormError('');
@@ -81,7 +96,12 @@ export function StoreDetailPage() {
     setSaving(true);
     try {
       const res = await upsertInventoryItem({
-        input: { storeId: store.id, productId: current.product.id, price, quantity: qty },
+        input: {
+          storeId: store.id,
+          productId: current.product.id,
+          price,
+          quantity: qty,
+        },
       });
       if (res.error) {
         setFormError(res.error.message);
@@ -96,13 +116,29 @@ export function StoreDetailPage() {
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <section style={{ border: '1px solid #e6e6e6', padding: 12, borderRadius: 8 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+      <section
+        style={{ border: '1px solid #e6e6e6', padding: 12, borderRadius: 8 }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
           <div>
             <div style={{ color: '#666', fontSize: 12 }}>
               <Link to="/">Inventory</Link> / Store
             </div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 10,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               {isEditingStoreName ? (
                 <>
                   <input
@@ -120,7 +156,10 @@ export function StoreDetailPage() {
                         setStoreNameError('Store name cannot be empty.');
                         return;
                       }
-                      const res = await updateStore({ id: store.id, input: { name } });
+                      const res = await updateStore({
+                        id: store.id,
+                        input: { name },
+                      });
                       if (res.error) {
                         setStoreNameError(res.error.message);
                         return;
@@ -160,9 +199,19 @@ export function StoreDetailPage() {
                 </>
               )}
             </div>
-            {store.location ? <div style={{ color: '#555' }}>{store.location}</div> : null}
-            {storeNameError ? <div style={{ color: '#b00020', marginTop: 6 }}>{storeNameError}</div> : null}
-            {storeNameSuccess ? <div style={{ color: '#0a7a2f', marginTop: 6 }}>{storeNameSuccess}</div> : null}
+            {store.location ? (
+              <div style={{ color: '#555' }}>{store.location}</div>
+            ) : null}
+            {storeNameError ? (
+              <div style={{ color: '#b00020', marginTop: 6 }}>
+                {storeNameError}
+              </div>
+            ) : null}
+            {storeNameSuccess ? (
+              <div style={{ color: '#0a7a2f', marginTop: 6 }}>
+                {storeNameSuccess}
+              </div>
+            ) : null}
           </div>
           {summary ? (
             <div style={{ display: 'grid', gap: 4, textAlign: 'right' }}>
@@ -170,7 +219,8 @@ export function StoreDetailPage() {
                 Total value: <b>{summary.totalValue}</b>
               </div>
               <div>
-                SKUs: <b>{summary.totalSkus}</b> · Qty: <b>{summary.totalQuantity}</b>
+                SKUs: <b>{summary.totalSkus}</b> · Qty:{' '}
+                <b>{summary.totalQuantity}</b>
               </div>
               <div>
                 Low stock (≤5): <b>{summary.lowStockCount}</b>
@@ -181,18 +231,73 @@ export function StoreDetailPage() {
       </section>
 
       {items.length === 0 ? (
-        <EmptyState title="No inventory items in this store" details="Seed should normally create some." />
+        <EmptyState
+          title="No inventory items in this store"
+          details="Seed should normally create some."
+        />
       ) : (
-        <section style={{ border: '1px solid #e6e6e6', borderRadius: 8, overflow: 'hidden' }}>
+        <section
+          style={{
+            border: '1px solid #e6e6e6',
+            borderRadius: 8,
+            overflow: 'hidden',
+          }}
+        >
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead style={{ background: '#fafafa' }}>
               <tr>
-                <th style={{ textAlign: 'left', padding: 10, borderBottom: '1px solid #eee' }}>Product</th>
-                <th style={{ textAlign: 'left', padding: 10, borderBottom: '1px solid #eee' }}>Category</th>
-                <th style={{ textAlign: 'right', padding: 10, borderBottom: '1px solid #eee' }}>Price</th>
-                <th style={{ textAlign: 'right', padding: 10, borderBottom: '1px solid #eee' }}>Qty</th>
-                <th style={{ textAlign: 'right', padding: 10, borderBottom: '1px solid #eee' }}>Value</th>
-                <th style={{ textAlign: 'right', padding: 10, borderBottom: '1px solid #eee' }} />
+                <th
+                  style={{
+                    textAlign: 'left',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  Product
+                </th>
+                <th
+                  style={{
+                    textAlign: 'left',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  Category
+                </th>
+                <th
+                  style={{
+                    textAlign: 'right',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  Price
+                </th>
+                <th
+                  style={{
+                    textAlign: 'right',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  Qty
+                </th>
+                <th
+                  style={{
+                    textAlign: 'right',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
+                  Value
+                </th>
+                <th
+                  style={{
+                    textAlign: 'right',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                />
               </tr>
             </thead>
             <tbody>
@@ -200,29 +305,79 @@ export function StoreDetailPage() {
                 const isEditing = it.id === editingId;
                 return (
                   <tr key={it.id}>
-                    <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}>{it.product.name}</td>
-                    <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}>{it.product.category}</td>
-                    <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2', textAlign: 'right' }}>
+                    <td
+                      style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
+                    >
+                      {it.product.name}
+                    </td>
+                    <td
+                      style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
+                    >
+                      {it.product.category}
+                    </td>
+                    <td
+                      style={{
+                        padding: 10,
+                        borderBottom: '1px solid #f2f2f2',
+                        textAlign: 'right',
+                      }}
+                    >
                       {isEditing ? (
-                        <input value={editPrice} onChange={(e) => setEditPrice(e.target.value)} inputMode="decimal" />
+                        <input
+                          value={editPrice}
+                          onChange={(e) => setEditPrice(e.target.value)}
+                          inputMode="decimal"
+                        />
                       ) : (
                         it.price
                       )}
                     </td>
-                    <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2', textAlign: 'right' }}>
+                    <td
+                      style={{
+                        padding: 10,
+                        borderBottom: '1px solid #f2f2f2',
+                        textAlign: 'right',
+                      }}
+                    >
                       {isEditing ? (
-                        <input value={editQty} onChange={(e) => setEditQty(e.target.value)} inputMode="numeric" />
+                        <input
+                          value={editQty}
+                          onChange={(e) => setEditQty(e.target.value)}
+                          inputMode="numeric"
+                        />
                       ) : (
                         it.quantity
                       )}
                     </td>
-                    <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2', textAlign: 'right' }}>
+                    <td
+                      style={{
+                        padding: 10,
+                        borderBottom: '1px solid #f2f2f2',
+                        textAlign: 'right',
+                      }}
+                    >
                       {isEditing ? '—' : it.inventoryValue}
                     </td>
-                    <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2', textAlign: 'right' }}>
+                    <td
+                      style={{
+                        padding: 10,
+                        borderBottom: '1px solid #f2f2f2',
+                        textAlign: 'right',
+                      }}
+                    >
                       {isEditing ? (
-                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
-                          <button disabled={saving || savingMutation} onClick={save}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            justifyContent: 'flex-end',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <button
+                            disabled={saving || savingMutation}
+                            onClick={save}
+                          >
                             {saving || savingMutation ? 'Saving…' : 'Save'}
                           </button>
                           <button
@@ -236,8 +391,18 @@ export function StoreDetailPage() {
                           </button>
                         </div>
                       ) : (
-                        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
-                          <button disabled={deletingMutation} onClick={() => startEdit(it)}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: 8,
+                            justifyContent: 'flex-end',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <button
+                            disabled={deletingMutation}
+                            onClick={() => startEdit(it)}
+                          >
                             Edit
                           </button>
                           <button
@@ -245,14 +410,21 @@ export function StoreDetailPage() {
                             onClick={async () => {
                               setFormError('');
                               if (!store) return;
-                              const ok = window.confirm(`Remove "${it.product.name}" from this store?`);
+                              const ok = window.confirm(
+                                `Remove "${it.product.name}" from this store?`,
+                              );
                               if (!ok) return;
-                              const res = await deleteInventoryItem({ storeId: store.id, productId: it.product.id });
+                              const res = await deleteInventoryItem({
+                                storeId: store.id,
+                                productId: it.product.id,
+                              });
                               if (res.error) {
                                 setFormError(res.error.message);
                                 return;
                               }
-                              await reexecute({ requestPolicy: 'network-only' });
+                              await reexecute({
+                                requestPolicy: 'network-only',
+                              });
                             }}
                           >
                             Delete
@@ -274,10 +446,19 @@ export function StoreDetailPage() {
         </section>
       )}
 
-      <section style={{ border: '1px solid #e6e6e6', borderRadius: 8, padding: 12 }}>
+      <section
+        style={{ border: '1px solid #e6e6e6', borderRadius: 8, padding: 12 }}
+      >
         <div style={{ display: 'grid', gap: 8 }}>
           <div style={{ fontWeight: 600 }}>Add new product</div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'end' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'end',
+            }}
+          >
             <label style={{ display: 'grid', gap: 4 }}>
               <div style={{ fontSize: 12, color: '#555' }}>Name</div>
               <input
@@ -337,7 +518,9 @@ export function StoreDetailPage() {
                   return;
                 }
                 if (!/^[0-9]+(\.[0-9]{1,2})?$/.test(price)) {
-                  setNewProductError('Price must be a decimal string like 12.34');
+                  setNewProductError(
+                    'Price must be a decimal string like 12.34',
+                  );
                   return;
                 }
                 if (!Number.isInteger(qty) || qty < 0) {
@@ -345,7 +528,9 @@ export function StoreDetailPage() {
                   return;
                 }
 
-                const created = await createProduct({ input: { name, category } });
+                const created = await createProduct({
+                  input: { name, category },
+                });
                 if (created.error) {
                   setNewProductError(created.error.message);
                   return;
@@ -376,12 +561,14 @@ export function StoreDetailPage() {
             </button>
           </div>
 
-          {newProductError ? <div style={{ color: '#b00020' }}>{newProductError}</div> : null}
-          {newProductSuccess ? <div style={{ color: '#0a7a2f' }}>{newProductSuccess}</div> : null}
+          {newProductError ? (
+            <div style={{ color: '#b00020' }}>{newProductError}</div>
+          ) : null}
+          {newProductSuccess ? (
+            <div style={{ color: '#0a7a2f' }}>{newProductSuccess}</div>
+          ) : null}
         </div>
       </section>
     </div>
   );
 }
-
-

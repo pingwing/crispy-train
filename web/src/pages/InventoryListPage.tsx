@@ -37,10 +37,21 @@ export function InventoryListPage() {
   const [productSubmitError, setProductSubmitError] = useState<string>('');
   const [productSubmitSuccess, setProductSubmitSuccess] = useState<string>('');
 
-  const [{ data: storesData, fetching: storesFetching, error: storesError }, reexecuteStoresQuery] = useStoresQuery();
+  const [
+    { data: storesData, fetching: storesFetching, error: storesError },
+    reexecuteStoresQuery,
+  ] = useStoresQuery();
 
-  type SortKey = 'store' | 'product' | 'category' | 'price' | 'quantity' | 'value';
-  const [sortField, setSortField] = useState<InventoryItemSortField | null>(null);
+  type SortKey =
+    | 'store'
+    | 'product'
+    | 'category'
+    | 'price'
+    | 'quantity'
+    | 'value';
+  const [sortField, setSortField] = useState<InventoryItemSortField | null>(
+    null,
+  );
   const [sortDirection, setSortDirection] = useState<SortDirection>('ASC');
 
   const filter = useMemo<InventoryItemFilterInput | undefined>(() => {
@@ -69,25 +80,32 @@ export function InventoryListPage() {
     return Object.keys(f).length > 0 ? f : undefined;
   }, [storeId, category, search, minPrice, maxPrice, minQuantity, maxQuantity]);
 
-  const [{ data, fetching, error }, reexecuteInventoryItemsQuery] = useInventoryItemsQuery({
-    variables: {
-      filter,
-      sort: sortField ? { field: sortField, direction: sortDirection } : undefined,
-      page,
-      pageSize,
-    },
-  });
+  const [{ data, fetching, error }, reexecuteInventoryItemsQuery] =
+    useInventoryItemsQuery({
+      variables: {
+        filter,
+        sort: sortField
+          ? { field: sortField, direction: sortDirection }
+          : undefined,
+        page,
+        pageSize,
+      },
+    });
 
   const [createStoreResult, createStore] = useCreateStoreMutation();
   const [createProductResult, createProduct] = useCreateProductMutation();
-  const [upsertInventoryItemResult, upsertInventoryItem] = useUpsertInventoryItemMutation();
-  const isProductSubmitting = createProductResult.fetching || upsertInventoryItemResult.fetching;
+  const [upsertInventoryItemResult, upsertInventoryItem] =
+    useUpsertInventoryItemMutation();
+  const isProductSubmitting =
+    createProductResult.fetching || upsertInventoryItemResult.fetching;
   const isStoreSubmitting = createStoreResult.fetching;
 
   const items = data?.inventoryItems?.items ?? [];
   const pageInfo = data?.inventoryItems?.pageInfo;
   const total = pageInfo?.total ?? 0;
-  const totalPages = pageInfo ? Math.max(1, Math.ceil(pageInfo.total / pageInfo.pageSize)) : 1;
+  const totalPages = pageInfo
+    ? Math.max(1, Math.ceil(pageInfo.total / pageInfo.pageSize))
+    : 1;
   const currentPage = pageInfo?.page ?? page;
 
   useEffect(() => {
@@ -126,9 +144,18 @@ export function InventoryListPage() {
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <section style={{ border: '1px solid #e6e6e6', padding: 12, borderRadius: 8 }}>
+      <section
+        style={{ border: '1px solid #e6e6e6', padding: 12, borderRadius: 8 }}
+      >
         <div style={{ display: 'grid', gap: 8 }}>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'end' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'end',
+            }}
+          >
             <label style={{ display: 'grid', gap: 4 }}>
               <div style={{ fontSize: 12, color: '#555' }}>Store</div>
               <select
@@ -224,7 +251,14 @@ export function InventoryListPage() {
             </label>
           </div>
 
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
             <div style={{ color: '#555' }}>
               {pageInfo ? (
                 <>
@@ -234,7 +268,14 @@ export function InventoryListPage() {
                 '—'
               )}
             </div>
-            <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+            <div
+              style={{
+                marginLeft: 'auto',
+                display: 'flex',
+                gap: 8,
+                alignItems: 'center',
+              }}
+            >
               <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <span style={{ fontSize: 12, color: '#555' }}>Page size</span>
                 <select
@@ -251,7 +292,10 @@ export function InventoryListPage() {
                   ))}
                 </select>
               </label>
-              <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+              <button
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
                 Prev
               </button>
               <span
@@ -278,7 +322,10 @@ export function InventoryListPage() {
       </section>
 
       {storesFetching ? null : storesError ? (
-        <ErrorState title="Could not load stores" details={storesError.message} />
+        <ErrorState
+          title="Could not load stores"
+          details={storesError.message}
+        />
       ) : null}
 
       {fetching ? (
@@ -286,13 +333,28 @@ export function InventoryListPage() {
       ) : error ? (
         <ErrorState title="Could not load inventory" details={error.message} />
       ) : items.length === 0 ? (
-        <EmptyState title="No matching inventory items" details="Try relaxing filters." />
+        <EmptyState
+          title="No matching inventory items"
+          details="Try relaxing filters."
+        />
       ) : (
-        <section style={{ border: '1px solid #e6e6e6', borderRadius: 8, overflow: 'hidden' }}>
+        <section
+          style={{
+            border: '1px solid #e6e6e6',
+            borderRadius: 8,
+            overflow: 'hidden',
+          }}
+        >
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead style={{ background: '#fafafa' }}>
               <tr>
-                <th style={{ textAlign: 'left', padding: 10, borderBottom: '1px solid #eee' }}>
+                <th
+                  style={{
+                    textAlign: 'left',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => toggleSort('store')}
@@ -302,7 +364,13 @@ export function InventoryListPage() {
                     Store{sortIndicator('store')}
                   </button>
                 </th>
-                <th style={{ textAlign: 'left', padding: 10, borderBottom: '1px solid #eee' }}>
+                <th
+                  style={{
+                    textAlign: 'left',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => toggleSort('product')}
@@ -312,7 +380,13 @@ export function InventoryListPage() {
                     Product{sortIndicator('product')}
                   </button>
                 </th>
-                <th style={{ textAlign: 'left', padding: 10, borderBottom: '1px solid #eee' }}>
+                <th
+                  style={{
+                    textAlign: 'left',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => toggleSort('category')}
@@ -322,7 +396,13 @@ export function InventoryListPage() {
                     Category{sortIndicator('category')}
                   </button>
                 </th>
-                <th style={{ textAlign: 'right', padding: 10, borderBottom: '1px solid #eee' }}>
+                <th
+                  style={{
+                    textAlign: 'right',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => toggleSort('price')}
@@ -332,7 +412,13 @@ export function InventoryListPage() {
                     Price{sortIndicator('price')}
                   </button>
                 </th>
-                <th style={{ textAlign: 'right', padding: 10, borderBottom: '1px solid #eee' }}>
+                <th
+                  style={{
+                    textAlign: 'right',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => toggleSort('quantity')}
@@ -342,7 +428,13 @@ export function InventoryListPage() {
                     Qty{sortIndicator('quantity')}
                   </button>
                 </th>
-                <th style={{ textAlign: 'right', padding: 10, borderBottom: '1px solid #eee' }}>
+                <th
+                  style={{
+                    textAlign: 'right',
+                    padding: 10,
+                    borderBottom: '1px solid #eee',
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => toggleSort('value')}
@@ -357,18 +449,46 @@ export function InventoryListPage() {
             <tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}>
+                  <td
+                    style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
+                  >
                     <Link to={`/stores/${it.store.id}`}>{it.store.name}</Link>
                   </td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}>{it.product.name}</td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}>{it.product.category}</td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2', textAlign: 'right' }}>
+                  <td
+                    style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
+                  >
+                    {it.product.name}
+                  </td>
+                  <td
+                    style={{ padding: 10, borderBottom: '1px solid #f2f2f2' }}
+                  >
+                    {it.product.category}
+                  </td>
+                  <td
+                    style={{
+                      padding: 10,
+                      borderBottom: '1px solid #f2f2f2',
+                      textAlign: 'right',
+                    }}
+                  >
                     {it.price}
                   </td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2', textAlign: 'right' }}>
+                  <td
+                    style={{
+                      padding: 10,
+                      borderBottom: '1px solid #f2f2f2',
+                      textAlign: 'right',
+                    }}
+                  >
                     {it.quantity}
                   </td>
-                  <td style={{ padding: 10, borderBottom: '1px solid #f2f2f2', textAlign: 'right' }}>
+                  <td
+                    style={{
+                      padding: 10,
+                      borderBottom: '1px solid #f2f2f2',
+                      textAlign: 'right',
+                    }}
+                  >
                     {it.inventoryValue}
                   </td>
                 </tr>
@@ -378,17 +498,32 @@ export function InventoryListPage() {
         </section>
       )}
 
-      <section style={{ border: '1px solid #e6e6e6', borderRadius: 8, padding: 12 }}>
+      <section
+        style={{ border: '1px solid #e6e6e6', borderRadius: 8, padding: 12 }}
+      >
         <div style={{ display: 'grid', gap: 8 }}>
           <div style={{ fontWeight: 600 }}>Create store</div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'end' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'end',
+            }}
+          >
             <label style={{ display: 'grid', gap: 4 }}>
               <div style={{ fontSize: 12, color: '#555' }}>Name</div>
-              <input value={newStoreName} onChange={(e) => setNewStoreName(e.target.value)} placeholder="e.g. Downtown" />
+              <input
+                value={newStoreName}
+                onChange={(e) => setNewStoreName(e.target.value)}
+                placeholder="e.g. Downtown"
+              />
             </label>
 
             <label style={{ display: 'grid', gap: 4 }}>
-              <div style={{ fontSize: 12, color: '#555' }}>Location (optional)</div>
+              <div style={{ fontSize: 12, color: '#555' }}>
+                Location (optional)
+              </div>
               <input
                 value={newStoreLocation}
                 onChange={(e) => setNewStoreLocation(e.target.value)}
@@ -410,7 +545,9 @@ export function InventoryListPage() {
                   return;
                 }
 
-                const created = await createStore({ input: { name, location: location || null } });
+                const created = await createStore({
+                  input: { name, location: location || null },
+                });
                 if (created.error) {
                   setStoreSubmitError(created.error.message);
                   return;
@@ -433,18 +570,34 @@ export function InventoryListPage() {
             </button>
           </div>
 
-          {storeSubmitError ? <div style={{ color: '#b00020' }}>{storeSubmitError}</div> : null}
-          {storeSubmitSuccess ? <div style={{ color: '#0a7a2f' }}>{storeSubmitSuccess}</div> : null}
+          {storeSubmitError ? (
+            <div style={{ color: '#b00020' }}>{storeSubmitError}</div>
+          ) : null}
+          {storeSubmitSuccess ? (
+            <div style={{ color: '#0a7a2f' }}>{storeSubmitSuccess}</div>
+          ) : null}
         </div>
       </section>
 
-      <section style={{ border: '1px solid #e6e6e6', borderRadius: 8, padding: 12 }}>
+      <section
+        style={{ border: '1px solid #e6e6e6', borderRadius: 8, padding: 12 }}
+      >
         <div style={{ display: 'grid', gap: 8 }}>
           <div style={{ fontWeight: 600 }}>Add new product</div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'end' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: 12,
+              flexWrap: 'wrap',
+              alignItems: 'end',
+            }}
+          >
             <label style={{ display: 'grid', gap: 4 }}>
               <div style={{ fontSize: 12, color: '#555' }}>Store</div>
-              <select value={newStoreId} onChange={(e) => setNewStoreId(e.target.value)}>
+              <select
+                value={newStoreId}
+                onChange={(e) => setNewStoreId(e.target.value)}
+              >
                 <option value="">Select store…</option>
                 {stores.map((s) => (
                   <option key={s.id} value={s.id}>
@@ -456,7 +609,11 @@ export function InventoryListPage() {
 
             <label style={{ display: 'grid', gap: 4 }}>
               <div style={{ fontSize: 12, color: '#555' }}>Name</div>
-              <input value={newProductName} onChange={(e) => setNewProductName(e.target.value)} placeholder="e.g. Cola" />
+              <input
+                value={newProductName}
+                onChange={(e) => setNewProductName(e.target.value)}
+                placeholder="e.g. Cola"
+              />
             </label>
 
             <label style={{ display: 'grid', gap: 4 }}>
@@ -470,12 +627,22 @@ export function InventoryListPage() {
 
             <label style={{ display: 'grid', gap: 4 }}>
               <div style={{ fontSize: 12, color: '#555' }}>Price</div>
-              <input value={newPrice} onChange={(e) => setNewPrice(e.target.value)} placeholder="0.00" inputMode="decimal" />
+              <input
+                value={newPrice}
+                onChange={(e) => setNewPrice(e.target.value)}
+                placeholder="0.00"
+                inputMode="decimal"
+              />
             </label>
 
             <label style={{ display: 'grid', gap: 4 }}>
               <div style={{ fontSize: 12, color: '#555' }}>Qty</div>
-              <input value={newQuantity} onChange={(e) => setNewQuantity(e.target.value)} placeholder="0" inputMode="numeric" />
+              <input
+                value={newQuantity}
+                onChange={(e) => setNewQuantity(e.target.value)}
+                placeholder="0"
+                inputMode="numeric"
+              />
             </label>
 
             <button
@@ -505,19 +672,29 @@ export function InventoryListPage() {
                   setProductSubmitError('Please provide a price.');
                   return;
                 }
-                if (!Number.isFinite(quantity) || !Number.isInteger(quantity) || quantity < 0) {
-                  setProductSubmitError('Quantity must be a whole number (0 or more).');
+                if (
+                  !Number.isFinite(quantity) ||
+                  !Number.isInteger(quantity) ||
+                  quantity < 0
+                ) {
+                  setProductSubmitError(
+                    'Quantity must be a whole number (0 or more).',
+                  );
                   return;
                 }
 
-                const created = await createProduct({ input: { name, category } });
+                const created = await createProduct({
+                  input: { name, category },
+                });
                 if (created.error) {
                   setProductSubmitError(created.error.message);
                   return;
                 }
                 const productId = created.data?.createProduct.id;
                 if (!productId) {
-                  setProductSubmitError('Could not create product (missing id).');
+                  setProductSubmitError(
+                    'Could not create product (missing id).',
+                  );
                   return;
                 }
 
@@ -541,8 +718,12 @@ export function InventoryListPage() {
             </button>
           </div>
 
-          {productSubmitError ? <div style={{ color: '#b00020' }}>{productSubmitError}</div> : null}
-          {productSubmitSuccess ? <div style={{ color: '#0a7a2f' }}>{productSubmitSuccess}</div> : null}
+          {productSubmitError ? (
+            <div style={{ color: '#b00020' }}>{productSubmitError}</div>
+          ) : null}
+          {productSubmitSuccess ? (
+            <div style={{ color: '#0a7a2f' }}>{productSubmitSuccess}</div>
+          ) : null}
         </div>
       </section>
     </div>

@@ -6,8 +6,18 @@ query Stores {
   }
 }
 
-query InventoryItems($filter: InventoryItemFilterInput, $sort: InventoryItemSortInput, $page: Int, $pageSize: Int) {
-  inventoryItems(filter: $filter, sort: $sort, page: $page, pageSize: $pageSize) {
+query InventoryItems(
+  $filter: InventoryItemFilterInput
+  $sort: InventoryItemSortInput
+  $page: Int
+  $pageSize: Int
+) {
+  inventoryItems(
+    filter: $filter
+    sort: $sort
+    page: $page
+    pageSize: $pageSize
+  ) {
     pageInfo {
       page
       pageSize
@@ -101,5 +111,3 @@ mutation UpdateStore($id: ID!, $input: StoreUpdateInput!) {
     location
   }
 }
-
-

@@ -1,5 +1,6 @@
 {
   "name": "server",
+  "author": "Przemyslaw Gierski",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -20,7 +21,6 @@
     "coverage": "npm run typecheck && echo 'Running coverage...' && c8 tsx --test $(find test -name '*.test.ts' -print)"
   },
   "keywords": [],
-  "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
