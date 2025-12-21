@@ -32,6 +32,7 @@
   - Coverage: `cd server && npm run coverage`
 - To make test very quick and not dependend on slow DB startup I use in-memory versions of Repositories for testing the Domain code.
 - To test Repositories I use contract tests that run the same tests on in-memory and real (Postgre based) versions.
+- Postgre based contract tests need DB to be available, easiest with just running the whole app using `docker compose up --build` from the main repo directory.
 - **Repo “contract tests” warning (DB-backed)**: the optional Postgres-backed repository contract tests **TRUNCATE** the `inventory_item`, `product`, and `store` tables between tests.
   - They are only enabled when you run with `REPO_CONTRACT_DB=1`.
   - For safety, they will **refuse to run** unless the current database name ends with `_test` (recommended) or you explicitly set `REPO_CONTRACT_DB_ALLOW_DESTRUCTIVE=1`.
@@ -43,7 +44,7 @@
 ## If I had more time I'd add:
 - Deployment for this example app.
 - Playwright automated frontend end-to-end tests.
-- 
+- More non-trivial operations
 
 ## Non-trivial operation:
 It's a store inventory summary with:
