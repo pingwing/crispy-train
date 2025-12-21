@@ -20,7 +20,7 @@
 - Mutation `deleteInventoryItem(storeId: ID!, productId: ID!)`
 
 ## Decisions & trade-offs
-- **Mikro-ORM + Postgres**: Mikro-ORM is my favourite Postgre ORM, it's small, easy to use, fast.
+- **Mikro-ORM + Postgres**: Mikro-ORM is my favourite Postgre ORM, it's small, easy to use, fast. Postgre SQL is a good choice for various types of applications. It's popular, so it's easy to find different hosting options.
 - **Express 5 + Apollo Server 5**: Express, because it's the most used and because of this the most compatible with everything framework. I'm not a fan of framework magic, like in Nest.js. SDL-first GraphQL for clarity and easy review; errors use GraphQL `extensions.code` (`BAD_USER_INPUT`, `NOT_FOUND`).
 - **Pagination**: offset pagination (`page`/`pageSize`) is simple and good for the assignment; cursor pagination would be a natural next step.
 - **Seeding**: migrations + seed run automatically on server container start so reviewers can click around immediately.
@@ -43,3 +43,12 @@
 ## If I had more time I'd add:
 - Deployment for this example app.
 - Playwright automated frontend end-to-end tests.
+- 
+
+## Non-trivial operation:
+It's a store inventory summary with:
+- total value of products in the store
+- number of SKUs (unique products)
+- total quantity of products in stock
+- number of low stock (<= 5) items
+This summary is exposed as storeInventorySummary GQL query.
