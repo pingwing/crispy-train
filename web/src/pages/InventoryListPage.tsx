@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
 import {
   type InventoryItemSortField,
@@ -107,11 +107,6 @@ export function InventoryListPage() {
     ? Math.max(1, Math.ceil(pageInfo.total / pageInfo.pageSize))
     : 1;
   const currentPage = pageInfo?.page ?? page;
-
-  useEffect(() => {
-    if (!pageInfo) return;
-    if (page > totalPages) setPage(totalPages);
-  }, [pageInfo, page, totalPages]);
 
   const stores = storesData?.stores ?? [];
 
@@ -293,8 +288,8 @@ export function InventoryListPage() {
                 </select>
               </label>
               <button
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                onClick={() => setPage(Math.max(1, currentPage - 1))}
               >
                 Prev
               </button>
@@ -312,7 +307,7 @@ export function InventoryListPage() {
               </span>
               <button
                 disabled={!pageInfo || currentPage >= totalPages}
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
               >
                 Next
               </button>
