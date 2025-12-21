@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
 import {
   type InventoryItemSortField,
@@ -13,6 +13,11 @@ import {
 } from '../graphql/generated/urql';
 
 export function InventoryListPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const refreshInventory =
+    (location.state as any)?.refreshInventory === true;
+
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
@@ -40,7 +45,9 @@ export function InventoryListPage() {
   const [
     { data: storesData, fetching: storesFetching, error: storesError },
     reexecuteStoresQuery,
-  ] = useStoresQuery();
+  ] = useStoresQuery({
+    requestPolicy: refreshInventory ? 'network-only' : 'cache-and-network',
+  });
 
   type SortKey =
     | 'store'
@@ -90,7 +97,24 @@ export function InventoryListPage() {
         page,
         pageSize,
       },
+      requestPolicy: refreshInventory ? 'network-only' : 'cache-and-network',
     });
+
+  useEffect(() => {
+    if (!refreshInventory) return;
+    // Force a one-time refetch so we don't show stale items/stores after deleting a store.
+    reexecuteStoresQuery({ requestPolicy: 'network-only' });
+    reexecuteInventoryItemsQuery({ requestPolicy: 'network-only' });
+    // Clear the one-time refresh flag so future renders use default caching.
+    navigate(location.pathname + location.search, { replace: true, state: null });
+  }, [
+    refreshInventory,
+    reexecuteStoresQuery,
+    reexecuteInventoryItemsQuery,
+    navigate,
+    location.pathname,
+    location.search,
+  ]);
 
   const [createStoreResult, createStore] = useCreateStoreMutation();
   const [createProductResult, createProduct] = useCreateProductMutation();

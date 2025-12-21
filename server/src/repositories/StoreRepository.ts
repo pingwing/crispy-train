@@ -26,6 +26,7 @@ export interface IStoreRepository {
     id: string,
     input: { name?: string; location?: string | null },
   ): Promise<Store | null>;
+  delete(id: string): Promise<boolean>;
   listInventoryItems(storeId: string): Promise<InventoryItem[]>;
 }
 
@@ -103,6 +104,18 @@ export class StoreRepository implements IStoreRepository {
       throw e;
     }
     return toDomainStore(store);
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await this.em.transactional(async (em) => {
+      const store = await em.findOne(StoreEntity, { id });
+      if (!store) return false;
+
+      // We don't rely on DB-level ON DELETE CASCADE; explicitly delete inventory items first.
+      await em.nativeDelete(InventoryItemEntity, { store: { id } });
+      const deleted = await em.nativeDelete(StoreEntity, { id });
+      return deleted > 0;
+    });
   }
 
   async listInventoryItems(storeId: string): Promise<InventoryItem[]> {

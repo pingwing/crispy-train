@@ -71,6 +71,7 @@ export type Mutation = {
   createProduct: Product;
   createStore: Store;
   deleteInventoryItem: Scalars['Boolean']['output'];
+  deleteStore: Scalars['Boolean']['output'];
   updateProduct: Product;
   updateStore: Store;
   upsertInventoryItem: InventoryItem;
@@ -90,6 +91,11 @@ export type MutationCreateStoreArgs = {
 export type MutationDeleteInventoryItemArgs = {
   productId: Scalars['ID']['input'];
   storeId: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteStoreArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -254,6 +260,13 @@ export type UpdateStoreMutationVariables = Exact<{
 
 export type UpdateStoreMutation = { __typename?: 'Mutation', updateStore: { __typename?: 'Store', id: string, name: string, location?: string | null } };
 
+export type DeleteStoreMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteStoreMutation = { __typename?: 'Mutation', deleteStore: boolean };
+
 
 export const StoresDocument = gql`
     query Stores {
@@ -398,4 +411,13 @@ export const UpdateStoreDocument = gql`
 
 export function useUpdateStoreMutation() {
   return Urql.useMutation<UpdateStoreMutation, UpdateStoreMutationVariables>(UpdateStoreDocument);
+};
+export const DeleteStoreDocument = gql`
+    mutation DeleteStore($id: ID!) {
+  deleteStore(id: $id)
+}
+    `;
+
+export function useDeleteStoreMutation() {
+  return Urql.useMutation<DeleteStoreMutation, DeleteStoreMutationVariables>(DeleteStoreDocument);
 };

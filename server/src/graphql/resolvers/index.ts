@@ -194,6 +194,10 @@ export const resolvers: Resolvers = {
       );
     }),
 
+    deleteStore: wrapResolver(async (_p, args, ctx) => {
+      return await ctx.services.inventoryService.deleteStore(args.id);
+    }),
+
     createProduct: wrapResolver(async (_p, args, ctx) => {
       return await ctx.services.inventoryService.createProduct(args.input);
     }),

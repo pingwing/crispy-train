@@ -111,3 +111,7 @@ mutation UpdateStore($id: ID!, $input: StoreUpdateInput!) {
     location
   }
 }
+
+mutation DeleteStore($id: ID!) {
+  deleteStore(id: $id)
+}

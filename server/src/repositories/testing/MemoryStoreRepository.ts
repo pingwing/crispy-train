@@ -86,6 +86,16 @@ export class MemoryStoreRepository implements IStoreRepository {
     return updated;
   }
 
+  async delete(id: string): Promise<boolean> {
+    const existed = this.db.stores.delete(id);
+    if (!existed) return false;
+
+    for (const key of [...this.db.inventoryByStoreProduct.keys()]) {
+      if (key.startsWith(`${id}:`)) this.db.inventoryByStoreProduct.delete(key);
+    }
+    return true;
+  }
+
   async listInventoryItems(storeId: string): Promise<InventoryItem[]> {
     return [...this.db.inventoryByStoreProduct.values()]
       .filter((ii) => ii.store.id === storeId)

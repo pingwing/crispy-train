@@ -16,6 +16,7 @@ type Query {
 type Mutation {
   createStore(input: StoreCreateInput!): Store!
   updateStore(id: ID!, input: StoreUpdateInput!): Store!
+  deleteStore(id: ID!): Boolean!
 
   createProduct(input: ProductCreateInput!): Product!
   updateProduct(id: ID!, input: ProductUpdateInput!): Product!

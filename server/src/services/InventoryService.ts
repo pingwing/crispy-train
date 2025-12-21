@@ -112,6 +112,13 @@ export class InventoryService {
     return store;
   }
 
+  async deleteStore(id: string) {
+    const parsed = parseOrValidationError(z.string().uuid(), id, 'Invalid store id');
+    const deleted = await this.stores.delete(parsed);
+    if (!deleted) throw new NotFoundError('Store not found');
+    return true;
+  }
+
   async createProduct(input: { name: string; category: string }) {
     const parsed = parseOrValidationError(
       z.object({

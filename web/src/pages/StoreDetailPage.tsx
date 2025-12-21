@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { EmptyState, ErrorState, LoadingState } from '../components/States';
 import {
   useCreateProductMutation,
   useDeleteInventoryItemMutation,
+  useDeleteStoreMutation,
   useStoreDetailQuery,
   useUpdateStoreMutation,
   useUpsertInventoryItemMutation,
@@ -12,6 +13,7 @@ import {
 export function StoreDetailPage() {
   const params = useParams();
   const storeId = params.storeId ?? '';
+  const navigate = useNavigate();
 
   const [{ data, fetching, error }, reexecute] = useStoreDetailQuery({
     variables: { id: storeId },
@@ -26,6 +28,8 @@ export function StoreDetailPage() {
     useUpdateStoreMutation();
   const [{ fetching: deletingMutation }, deleteInventoryItem] =
     useDeleteInventoryItemMutation();
+  const [{ fetching: deletingStoreMutation }, deleteStore] =
+    useDeleteStoreMutation();
 
   const store = data?.store;
   const summary = data?.storeInventorySummary;
@@ -48,6 +52,7 @@ export function StoreDetailPage() {
   const [storeNameDraft, setStoreNameDraft] = useState<string>('');
   const [storeNameError, setStoreNameError] = useState<string>('');
   const [storeNameSuccess, setStoreNameSuccess] = useState<string>('');
+  const [deleteStoreError, setDeleteStoreError] = useState<string>('');
 
   const current = useMemo(
     () => (store?.inventoryItems ?? []).find((i) => i.id === editingId),
@@ -65,7 +70,11 @@ export function StoreDetailPage() {
     return (
       <EmptyState
         title="Store not found"
-        details={<Link to="/">Back to inventory</Link>}
+        details={
+          <Link to="/" state={{ refreshInventory: true }}>
+            Back to inventory
+          </Link>
+        }
       />
     );
 
@@ -129,7 +138,10 @@ export function StoreDetailPage() {
         >
           <div>
             <div style={{ color: '#666', fontSize: 12 }}>
-              <Link to="/">Inventory</Link> / Store
+              <Link to="/" state={{ refreshInventory: true }}>
+                Inventory
+              </Link>{' '}
+              / Store
             </div>
             <div
               style={{
@@ -213,20 +225,56 @@ export function StoreDetailPage() {
               </div>
             ) : null}
           </div>
-          {summary ? (
-            <div style={{ display: 'grid', gap: 4, textAlign: 'right' }}>
-              <div>
-                Total value: <b>{summary.totalValue}</b>
+          <div style={{ display: 'grid', gap: 10, justifyItems: 'end' }}>
+            {summary ? (
+              <div style={{ display: 'grid', gap: 4, textAlign: 'right' }}>
+                <div>
+                  Total value: <b>{summary.totalValue}</b>
+                </div>
+                <div>
+                  SKUs: <b>{summary.totalSkus}</b> · Qty:{' '}
+                  <b>{summary.totalQuantity}</b>
+                </div>
+                <div>
+                  Low stock (≤5): <b>{summary.lowStockCount}</b>
+                </div>
               </div>
-              <div>
-                SKUs: <b>{summary.totalSkus}</b> · Qty:{' '}
-                <b>{summary.totalQuantity}</b>
-              </div>
-              <div>
-                Low stock (≤5): <b>{summary.lowStockCount}</b>
-              </div>
+            ) : null}
+
+            <div style={{ display: 'grid', gap: 6, justifyItems: 'end' }}>
+              <button
+                disabled={deletingStoreMutation}
+                style={{
+                  border: '1px solid #f0b4b4',
+                  background: '#fff5f5',
+                  color: '#b00020',
+                  padding: '6px 10px',
+                  borderRadius: 6,
+                }}
+                onClick={async () => {
+                  setDeleteStoreError('');
+                  const ok = window.confirm(
+                    `Delete store "${store.name}"?\n\nThis will remove all inventory items in this store.`,
+                  );
+                  if (!ok) return;
+
+                  const res = await deleteStore({ id: store.id });
+                  if (res.error) {
+                    setDeleteStoreError(res.error.message);
+                    return;
+                  }
+                  navigate('/', { replace: true, state: { refreshInventory: true } });
+                }}
+              >
+                {deletingStoreMutation ? 'Deleting…' : 'Delete store'}
+              </button>
+              {deleteStoreError ? (
+                <div style={{ color: '#b00020', textAlign: 'right' }}>
+                  {deleteStoreError}
+                </div>
+              ) : null}
             </div>
-          ) : null}
+          </div>
         </div>
       </section>
 
